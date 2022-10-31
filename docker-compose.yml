@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0.31
+    container_name: "music-streaming-music-db"
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=music-db
+      - MYSQL_USER=music-streaming-music
+      - MYSQL_PASSWORD=music-streaming-music-mysql
+      - MYSQL_DATABASE=music-streaming-music
+      - MYSQL_ROOT_HOST=%
+    networks:
+      - fullstack
+    volumes:
+      - database_mysql:/var/lib/mysql
+
+  service:
+    build: .
+    container_name: "music-streaming-music-service"
+    environment:
+      DB_USERNAME: "music-streaming-music"
+      DB_PASSWORD: "music-streaming-music-mysql"
+      DB_DB: "music-streaming-music"
+      DB_HOST: "music-streaming-music-db"
+      DB_PORT: "3306"
+      SSL_MODE: "disable"
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+    networks:
+      - fullstack
+
+volumes:
+  database_mysql:
+
+networks:
+  fullstack:
+    driver: bridge
