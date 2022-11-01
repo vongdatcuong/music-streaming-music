@@ -21,6 +21,16 @@ func Run() error {
 		return fmt.Errorf("could not ping the database: %w", err)
 	}
 
+	_, err = db.MigrateDB()
+
+	if err != nil {
+		return err
+	}
+
+	/*if err = migration.Down(); err != nil {
+		return fmt.Errorf("could not down the migration: %w", err)
+	}*/
+
 	return nil
 }
 

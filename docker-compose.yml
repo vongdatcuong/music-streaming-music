@@ -4,6 +4,7 @@ services:
   db:
     image: mysql:8.0.31
     container_name: "music-streaming-music-db"
+    restart: always
     ports:
       - "3306:3306"
     environment:
@@ -26,7 +27,6 @@ services:
       DB_DB: "music-streaming-music"
       DB_HOST: "music-streaming-music-db"
       DB_PORT: "3306"
-      SSL_MODE: "disable"
     ports:
       - "8001:8001"
     depends_on:

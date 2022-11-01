@@ -18,7 +18,7 @@ func NewDatabase() (*Database, error) {
 	log.Info("Setting up new database connection")
 
 	connectionString := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s",
+		"%s:%s@tcp(%s:%s)/%s?multiStatements=true",
 		os.Getenv("DB_USERNAME"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_HOST"),
