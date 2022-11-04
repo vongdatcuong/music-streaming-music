@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
 	"github.com/vongdatcuong/music-streaming-music/internal/database"
+	grpcTransport "github.com/vongdatcuong/music-streaming-music/internal/transport/grpc"
 )
 
 func Run() error {
@@ -30,6 +31,12 @@ func Run() error {
 	/*if err = migration.Down(); err != nil {
 		return fmt.Errorf("could not down the migration: %w", err)
 	}*/
+
+	grpcHandler := grpcTransport.NewHandler()
+
+	if err := grpcHandler.Server(); err != nil {
+		return err
+	}
 
 	return nil
 }

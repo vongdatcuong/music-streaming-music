@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package music_streaming.music.common;
+
+option go_package="./protos/v1/pb";
+
+message PaginationInfo {
+  uint64 offset = 1;
+  uint64 limit = 2;
+}

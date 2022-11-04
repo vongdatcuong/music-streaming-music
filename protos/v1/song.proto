@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package music_streaming.music.song;
+
+option go_package="./protos/v1/pb";
+
+import "protos/v1/common.proto";
+
+message Song {
+  uint64 song_id = 1;
+  string name = 2;
+  uint32 genre = 3;
+  string artist = 4;
+  uint32 duration = 5;
+  string language = 6;
+  float rating = 7;
+  // Check this
+  uint64 resource_id = 8;
+  string resource_link = 9;
+  uint64 created_at = 10;
+  uint64 updated_at = 11;
+  uint32 status = 12;
+}
+
+service SongService {
+  rpc GetSongList (GetSongListRequest) returns (GetSongListResponse);
+  rpc GetSongDetails (GetSongDetailsRequest) returns (GetSongDetailsResponse);
+  rpc CreateSong (CreateSongRequest) returns (CreateSongResponse);
+  rpc UpdateSong (UpdateSongRequest) returns (UpdateSongResponse);
+  rpc DeleteSong (DeleteSongRequest) returns (DeleteSongResponse);
+}
+
+// Get Song List
+message GetSongListRequest {
+  music_streaming.music.common.PaginationInfo pagination_info = 1;
+  GetSongListFilter filter = 2;
+}
+
+message GetSongListFilter {
+  string name = 1;
+  uint32 genre = 2;
+  string artist = 3;
+  uint32 duraition = 4;
+  string language = 5;
+  uint64 created_time_from = 6;
+  uint64 created_time_to = 7;
+}
+
+message GetSongListResponse {
+  GetSongListResponseData data = 3;
+  uint32 error = 1;
+  string error_msg = 2;
+}
+
+message GetSongListResponseData {
+  repeated Song songs = 1;
+  uint64 total_count = 2;
+}
+
+// Get Song Details
+message GetSongDetailsRequest {
+   uint64 song_id = 1;
+}
+
+message GetSongDetailsResponse {
+  GetSongDetailsResponseData data = 1;
+  uint32 error = 2;
+  string error_msg = 3;
+}
+
+message GetSongDetailsResponseData {
+  Song song = 1;
+}
+
+// Create Song
+message CreateSongRequest {
+  Song song = 1;
+}
+
+message CreateSongResponse {
+  uint32 error = 2;
+  string error_msg = 3;
+}
+
+// Update Song
+message UpdateSongRequest {
+  Song song = 1;
+}
+
+message UpdateSongResponse {
+  uint32 error = 2;
+  string error_msg = 3;
+}
+
+// Delete Song
+message DeleteSongRequest {
+  uint64 song_id = 1;
+}
+
+message DeleteSongResponse {
+  uint32 error = 2;
+  string error_msg = 3;
+}

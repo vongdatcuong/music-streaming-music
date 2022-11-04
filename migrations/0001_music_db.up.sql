@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS Song (
     `resource_link` VARCHAR(10000),
     `created_at` BIGINT(20) NOT NULL,
     `updated_at` BIGINT(20) NOT NULL,
+    `status` INT UNSIGNED NOT NULL,
     
     PRIMARY KEY (`song_id`),
     FOREIGN KEY (`genre`) REFERENCES Genre(`genre_id`)
@@ -30,6 +31,7 @@ CREATE TABLE IF NOT EXISTS Playlist (
     `created_by` BIGINT(20) UNSIGNED NOT NULL,
     `created_at` BIGINT(20) NOT NULL,
     `updated_at` BIGINT(20) NOT NULL,
+    `status` INT UNSIGNED NOT NULL,
     
     PRIMARY KEY (`playlist_id`)
 );
