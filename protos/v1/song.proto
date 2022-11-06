@@ -9,7 +9,7 @@ import "protos/v1/common.proto";
 message Song {
   uint64 song_id = 1;
   string name = 2;
-  uint32 genre = 3;
+  music_streaming.music.common.NameValueInt32 genre = 3; // Update this
   string artist = 4;
   uint32 duration = 5;
   string language = 6;
@@ -26,7 +26,7 @@ service SongService {
   rpc GetSongList (GetSongListRequest) returns (GetSongListResponse);
   rpc GetSongDetails (GetSongDetailsRequest) returns (GetSongDetailsResponse);
   rpc CreateSong (CreateSongRequest) returns (CreateSongResponse);
-  rpc UpdateSong (UpdateSongRequest) returns (UpdateSongResponse);
+  rpc PutSong (PutSongRequest) returns (PutSongResponse);
   rpc DeleteSong (DeleteSongRequest) returns (DeleteSongResponse);
 }
 
@@ -40,7 +40,7 @@ message GetSongListFilter {
   string name = 1;
   uint32 genre = 2;
   string artist = 3;
-  uint32 duraition = 4;
+  uint32 duration = 4;
   string language = 5;
   uint64 created_time_from = 6;
   uint64 created_time_to = 7;
@@ -82,12 +82,12 @@ message CreateSongResponse {
   string error_msg = 3;
 }
 
-// Update Song
-message UpdateSongRequest {
+// Put Song
+message PutSongRequest {
   Song song = 1;
 }
 
-message UpdateSongResponse {
+message PutSongResponse {
   uint32 error = 2;
   string error_msg = 3;
 }

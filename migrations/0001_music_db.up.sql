@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS Song (
     `language` VARCHAR(10) NOT NULL,
     `rating` FLOAT DEFAULT 0,
     `resource_id` BIGINT(20) UNSIGNED NOT NULL,
-    `resource_link` VARCHAR(10000),
+    `resource_link` VARCHAR(10000) NOT NULL,
     `created_at` BIGINT(20) NOT NULL,
     `updated_at` BIGINT(20) NOT NULL,
-    `status` INT UNSIGNED NOT NULL,
+    `status` TINYINT UNSIGNED NOT NULL,
     
     PRIMARY KEY (`song_id`),
     FOREIGN KEY (`genre`) REFERENCES Genre(`genre_id`)
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Playlist (
     `created_by` BIGINT(20) UNSIGNED NOT NULL,
     `created_at` BIGINT(20) NOT NULL,
     `updated_at` BIGINT(20) NOT NULL,
-    `status` INT UNSIGNED NOT NULL,
+    `status` TINYINT UNSIGNED NOT NULL,
     
     PRIMARY KEY (`playlist_id`)
 );
@@ -45,3 +45,10 @@ CREATE TABLE IF NOT EXISTS Playlist_Song (
     FOREIGN KEY (`playlist_id`) REFERENCES Playlist(`playlist_id`),
     FOREIGN KEY (`song_id`) REFERENCES Song(`song_id`)
 );
+
+INSERT INTO Genre (`name`, `created_at`, `updated_at`) VALUES ('Drama', UNIX_TIMESTAMP(),  UNIX_TIMESTAMP());
+INSERT INTO Genre (`name`, `created_at`, `updated_at`) VALUES ('Kpop', UNIX_TIMESTAMP(),  UNIX_TIMESTAMP());
+INSERT INTO Genre (`name`, `created_at`, `updated_at`) VALUES ('Jpop', UNIX_TIMESTAMP(),  UNIX_TIMESTAMP());
+INSERT INTO Genre (`name`, `created_at`, `updated_at`) VALUES ('Chinese', UNIX_TIMESTAMP(),  UNIX_TIMESTAMP());
+INSERT INTO Genre (`name`, `created_at`, `updated_at`) VALUES ('Hip-hop', UNIX_TIMESTAMP(),  UNIX_TIMESTAMP());
+INSERT INTO Genre (`name`, `created_at`, `updated_at`) VALUES ('Romantic', UNIX_TIMESTAMP(),  UNIX_TIMESTAMP());
