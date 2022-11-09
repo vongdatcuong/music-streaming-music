@@ -48,13 +48,13 @@ message GetSongListFilter {
 
 message GetSongListResponse {
   GetSongListResponseData data = 3;
-  uint32 error = 1;
-  string error_msg = 2;
+  optional uint32 error = 1;
+  optional string error_msg = 2;
 }
 
 message GetSongListResponseData {
   repeated Song songs = 1;
-  uint64 total_count = 2;
+  optional uint64 total_count = 2;
 }
 
 // Get Song Details
@@ -64,8 +64,8 @@ message GetSongDetailsRequest {
 
 message GetSongDetailsResponse {
   GetSongDetailsResponseData data = 1;
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
 
 message GetSongDetailsResponseData {
@@ -78,8 +78,8 @@ message CreateSongRequest {
 }
 
 message CreateSongResponse {
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
 
 // Put Song
@@ -88,8 +88,8 @@ message PutSongRequest {
 }
 
 message PutSongResponse {
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
 
 // Delete Song
@@ -98,6 +98,6 @@ message DeleteSongRequest {
 }
 
 message DeleteSongResponse {
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }

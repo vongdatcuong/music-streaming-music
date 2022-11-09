@@ -45,7 +45,7 @@ func convertSongRowToSong(songRow SongRow) song.Song {
 	}
 }
 
-func (db *Database) GetSongList(ctx context.Context, filter song.SongListFilter) ([]song.Song, error) {
+func (db *Database) GetSongList(ctx context.Context, pagination common.PaginationInfo, filter song.SongListFilter) ([]song.Song, uint64, error) {
 	equalQueries := make(map[string]any)
 	greaterEqualQueries := make(map[string]any)
 	lessEqualQueries := make(map[string]any)
@@ -75,8 +75,8 @@ func (db *Database) GetSongList(ctx context.Context, filter song.SongListFilter)
 	}
 
 	equalWheres, equalValues := database_utils.BuildSqlQueryStr(equalQueries, " = ")
-	greaterEqualWheres, greaterEqualValues := database_utils.BuildSqlQueryStr(equalQueries, " >= ")
-	lessEqualWheres, lessEqualValues := database_utils.BuildSqlQueryStr(equalQueries, " <= ")
+	greaterEqualWheres, greaterEqualValues := database_utils.BuildSqlQueryStr(greaterEqualQueries, " >= ")
+	lessEqualWheres, lessEqualValues := database_utils.BuildSqlQueryStr(lessEqualQueries, " <= ")
 
 	var wheres []string
 	wheres = append(equalWheres, greaterEqualWheres...)
@@ -86,14 +86,43 @@ func (db *Database) GetSongList(ctx context.Context, filter song.SongListFilter)
 	values = append(equalValues, greaterEqualValues...)
 	values = append(values, lessEqualValues...)
 
-	queryStr := database_utils.GetSqlWhereClause(strings.Join(wheres, " AND "))
-	rows, err := db.Client.QueryContext(ctx,
-		`	SELECT s.*, g.name 
-			FROM Song s 
-			INNER JOIN Genre g ON s.genre = g.genre_id `+queryStr, values...)
+	// Count total songs
+	var totalCount uint64
+	countQueryStr := database_utils.GetSqlWhereClause(strings.Join(wheres, " AND "))
+	countSql := `	SELECT COUNT(*)
+								FROM Song s ` + countQueryStr
+	rows2, err := db.Client.QueryContext(ctx, countSql, values...)
 
 	if err != nil {
-		return []song.Song{}, fmt.Errorf("could not get song list: %w", err)
+		return []song.Song{}, 0, fmt.Errorf("could not count number of songs: %w", err)
+	}
+	for rows2.Next() {
+		if err := rows2.Scan(&totalCount); err != nil {
+			return []song.Song{}, 0, fmt.Errorf("could not count number of songs: %w", err)
+		}
+	}
+
+	// Pagination
+	offset := pagination.Offset
+	var limit uint64
+
+	if pagination.Limit == 0 {
+		limit = constants.PAGINATION_INFO_DEFAULT_LIMIT
+	} else {
+		limit = pagination.Limit
+	}
+	values = append(values, offset)
+	values = append(values, limit)
+
+	queryStr := database_utils.GetSqlWhereClause(strings.Join(wheres, " AND "))
+
+	sql := `SELECT s.*, g.name
+					FROM Song s 
+					INNER JOIN Genre g ON s.genre = g.genre_id ` + queryStr + ` LIMIT ?, ?`
+	rows, err := db.Client.QueryContext(ctx, sql, values...)
+
+	if err != nil {
+		return []song.Song{}, 0, fmt.Errorf("could not get song list: %w", err)
 	}
 	defer rows.Close()
 
@@ -104,22 +133,22 @@ func (db *Database) GetSongList(ctx context.Context, filter song.SongListFilter)
 			&songRow.ResourceID, &songRow.ResourceLink, &songRow.CreatedAt, &songRow.UpdatedAt, &songRow.Status, &songRow.Genre.Name)
 
 		if err != nil {
-			return []song.Song{}, fmt.Errorf("could not scan song row: %w", err)
+			return []song.Song{}, 0, fmt.Errorf("could not scan song row: %w", err)
 		}
 
 		songs = append(songs, convertSongRowToSong(SongRow(songRow)))
 	}
-	return songs, nil
+
+	return songs, totalCount, nil
 }
 
 func (db *Database) GetSongDetails(ctx context.Context, id uint64) (song.Song, error) {
 	var songRow SongRow
-	row := db.Client.QueryRowContext(ctx,
-		`	SELECT s.*, g.name 
-			FROM Song s 
-			INNER JOIN Genre g ON s.genre = g.genre_id
-	 		WHERE s.song_id = ? AND s.status = ?`,
-		id, constants.ACTIVE_STATUS_ACTIVE)
+	sql := `SELECT s.*, g.name 
+					FROM Song s 
+					INNER JOIN Genre g ON s.genre = g.genre_id
+	 				WHERE s.song_id = ? AND s.status = ?`
+	row := db.Client.QueryRowContext(ctx, sql, id, constants.ACTIVE_STATUS_ACTIVE)
 	err := row.Scan(&songRow.SongID, &songRow.Name, &songRow.Genre.Value, &songRow.Artist, &songRow.Duration, &songRow.Language, &songRow.Rating,
 		&songRow.ResourceID, &songRow.ResourceLink, &songRow.CreatedAt, &songRow.UpdatedAt, &songRow.Status, &songRow.Genre.Name)
 
@@ -143,10 +172,11 @@ func (db *Database) CreateSong(ctx context.Context, newSong song.Song) (song.Son
 		UpdatedAt:    time_utils.GetCurrentUnixTime(),
 		Status:       constants.ACTIVE_STATUS_ACTIVE,
 	}
+	sql := `INSERT INTO Song(name, genre, artist, duration, language, rating, resource_id, resource_link,
+						created_at, updated_at, status) VALUES (:name, :genre.value, :artist, :duration, :language, :rating, :resourceid, :resourcelink, :createdat,
+						:updatedat, :status)`
 
-	row, err := db.Client.NamedExecContext(ctx, `INSERT INTO Song(name, genre, artist, duration, language, rating, resource_id, resource_link,
-		created_at, updated_at, status) VALUES (:name, :genre.value, :artist, :duration, :language, :rating, :resourceid, :resourcelink, :createdat,
-			:updatedat, :status)`, songRow)
+	row, err := db.Client.NamedExecContext(ctx, sql, songRow)
 
 	if err != nil {
 		return song.Song{}, fmt.Errorf("could not insert new song: %w", err)
@@ -179,13 +209,13 @@ func (db *Database) PutSong(ctx context.Context, existingSong song.Song) (song.S
 		UpdatedAt:    time_utils.GetCurrentUnixTime(),
 		Status:       existingSong.Status,
 	}
+	sql := `
+				UPDATE Song 
+				SET name = :name, genre = :genre.value, artist = :artist, duration = :duration, language = :language, rating = :rating, 
+						resource_id = :resourceid, resource_link = :resourcelink, created_at = :createdat, updated_at = :updatedat, status = :status
+				WHERE song_id = :songid`
 
-	_, err := db.Client.NamedExecContext(ctx,
-		`	UPDATE Song 
-			SET name = :name, genre = :genre.value, artist = :artist, duration = :duration, language = :language, rating = :rating, 
-					resource_id = :resourceid, resource_link = :resourcelink, created_at = :createdat, updated_at = :updatedat, status = :status
-			WHERE song_id = :songid`,
-		songRow)
+	_, err := db.Client.NamedExecContext(ctx, sql, songRow)
 
 	if err != nil {
 		return song.Song{}, fmt.Errorf("could not update song: %w", err)
@@ -195,7 +225,8 @@ func (db *Database) PutSong(ctx context.Context, existingSong song.Song) (song.S
 }
 
 func (db *Database) DeleteSong(ctx context.Context, id uint64) error {
-	_, err := db.Client.ExecContext(ctx, "DELETE FROM Song WHERE song_id = ?", id)
+	sql := "DELETE FROM Song WHERE song_id = ?"
+	_, err := db.Client.ExecContext(ctx, sql, id)
 
 	if err != nil {
 		return fmt.Errorf("could not delete song with id %d: %w", id, err)

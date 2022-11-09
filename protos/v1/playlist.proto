@@ -40,8 +40,8 @@ message GetPlaylistListFilter {
 
 message GetPlaylistListResponse {
   GetPlaylistListResponseData data = 1;
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
 
 message GetPlaylistListResponseData {
@@ -56,8 +56,8 @@ message GetPlaylistDetailsRequest {
 
 message GetPlaylistDetailsResponse {
   GetPlaylistDetailsResponseData data = 1;
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
 
 message GetPlaylistDetailsResponseData {
@@ -80,8 +80,8 @@ message UpdatePlaylistRequest {
 }
 
 message UpdatePlaylistResponse {
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
 
 // Delete Playlist
@@ -90,6 +90,6 @@ message DeletePlaylistRequest {
 }
 
 message DeletePlaylistResponse {
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
