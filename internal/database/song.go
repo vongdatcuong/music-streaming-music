@@ -10,9 +10,11 @@ import (
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/song"
 	database_utils "github.com/vongdatcuong/music-streaming-music/internal/modules/utils/database"
 	time_utils "github.com/vongdatcuong/music-streaming-music/internal/modules/utils/time"
+	validator_utils "github.com/vongdatcuong/music-streaming-music/internal/modules/utils/validator"
 )
 
 // 12 fields
+// Put struct
 type SongRow struct {
 	SongID       uint64
 	Name         string
@@ -25,24 +27,32 @@ type SongRow struct {
 	ResourceLink string
 	CreatedAt    uint64
 	UpdatedAt    uint64
-	Status       constants.ACTIVE_STATUS
+	Status       constants.ACTIVE_STATUS `validate:"required"`
 }
 
-func convertSongRowToSong(songRow SongRow) song.Song {
-	return song.Song{
-		SongID:       songRow.SongID,
-		Name:         songRow.Name,
-		Genre:        songRow.Genre,
-		Artist:       songRow.Artist,
-		Duration:     songRow.Duration,
-		Language:     songRow.Language,
-		Rating:       songRow.Rating,
-		ResourceID:   songRow.ResourceID,
-		ResourceLink: songRow.ResourceLink,
-		CreatedAt:    songRow.CreatedAt,
-		UpdatedAt:    songRow.UpdatedAt,
-		Status:       songRow.Status,
-	}
+type SongRowCreate struct {
+	Name         string                  `validate:"required,max=256"`
+	Genre        common.NameValueInt32   `validate:"required"`
+	Artist       string                  `validate:"required"`
+	Duration     uint32                  `validate:"required"`
+	Language     constants.LANGUAGE_ENUM `validate:"required"`
+	Rating       float32                 `validate:"required,max=10"`
+	ResourceID   uint64                  `validate:"required"`
+	ResourceLink string                  `validate:"required"`
+	CreatedAt    uint64
+	UpdatedAt    uint64
+	Status       constants.ACTIVE_STATUS `validate:"required"`
+}
+
+type SongRowPut struct {
+	SongID    uint64                  `validate:"required"`
+	Name      string                  `validate:"required,max=256"`
+	Genre     common.NameValueInt32   `validate:"required"`
+	Artist    string                  `validate:"required"`
+	Duration  uint32                  `validate:"required"`
+	Language  constants.LANGUAGE_ENUM `validate:"required"`
+	UpdatedAt uint64
+	Status    constants.ACTIVE_STATUS `validate:"required"`
 }
 
 func (db *Database) GetSongList(ctx context.Context, pagination common.PaginationInfo, filter song.SongListFilter) ([]song.Song, uint64, error) {
@@ -92,6 +102,7 @@ func (db *Database) GetSongList(ctx context.Context, pagination common.Paginatio
 	countSql := `	SELECT COUNT(*)
 								FROM Song s ` + countQueryStr
 	rows2, err := db.Client.QueryContext(ctx, countSql, values...)
+	defer rows2.Close()
 
 	if err != nil {
 		return []song.Song{}, 0, fmt.Errorf("could not count number of songs: %w", err)
@@ -120,11 +131,11 @@ func (db *Database) GetSongList(ctx context.Context, pagination common.Paginatio
 					FROM Song s 
 					INNER JOIN Genre g ON s.genre = g.genre_id ` + queryStr + ` LIMIT ?, ?`
 	rows, err := db.Client.QueryContext(ctx, sql, values...)
+	defer rows.Close()
 
 	if err != nil {
 		return []song.Song{}, 0, fmt.Errorf("could not get song list: %w", err)
 	}
-	defer rows.Close()
 
 	var songs []song.Song
 	for rows.Next() {
@@ -159,24 +170,31 @@ func (db *Database) GetSongDetails(ctx context.Context, id uint64) (song.Song, e
 }
 
 func (db *Database) CreateSong(ctx context.Context, newSong song.Song) (song.Song, error) {
-	songRow := SongRow{
+	songRowCreate := SongRowCreate{
 		Name:         newSong.Name,
 		Genre:        newSong.Genre,
 		Artist:       newSong.Artist,
 		Duration:     newSong.Duration,
 		Language:     newSong.Language,
 		Rating:       newSong.Rating,
-		ResourceID:   1,
-		ResourceLink: "empty",
+		ResourceID:   newSong.ResourceID,
+		ResourceLink: newSong.ResourceLink,
 		CreatedAt:    time_utils.GetCurrentUnixTime(),
 		UpdatedAt:    time_utils.GetCurrentUnixTime(),
-		Status:       constants.ACTIVE_STATUS_ACTIVE,
+		Status:       newSong.Status,
 	}
+
+	err := validator_utils.ValidateStruct(songRowCreate)
+
+	if err != nil {
+		return song.Song{}, fmt.Errorf("song is not valid: %w", err)
+	}
+
 	sql := `INSERT INTO Song(name, genre, artist, duration, language, rating, resource_id, resource_link,
 						created_at, updated_at, status) VALUES (:name, :genre.value, :artist, :duration, :language, :rating, :resourceid, :resourcelink, :createdat,
 						:updatedat, :status)`
 
-	row, err := db.Client.NamedExecContext(ctx, sql, songRow)
+	row, err := db.Client.NamedExecContext(ctx, sql, songRowCreate)
 
 	if err != nil {
 		return song.Song{}, fmt.Errorf("could not insert new song: %w", err)
@@ -195,27 +213,30 @@ func (db *Database) CreateSong(ctx context.Context, newSong song.Song) (song.Son
 
 // Put Song
 func (db *Database) PutSong(ctx context.Context, existingSong song.Song) (song.Song, error) {
-	songRow := SongRow{
-		SongID:       existingSong.SongID,
-		Name:         existingSong.Name,
-		Genre:        existingSong.Genre,
-		Artist:       existingSong.Artist,
-		Duration:     existingSong.Duration,
-		Language:     existingSong.Language,
-		Rating:       existingSong.Rating,
-		ResourceID:   existingSong.ResourceID,
-		ResourceLink: existingSong.ResourceLink,
-		CreatedAt:    existingSong.CreatedAt,
-		UpdatedAt:    time_utils.GetCurrentUnixTime(),
-		Status:       existingSong.Status,
+	songRowPut := SongRowPut{
+		SongID:    existingSong.SongID,
+		Name:      existingSong.Name,
+		Genre:     existingSong.Genre,
+		Artist:    existingSong.Artist,
+		Duration:  existingSong.Duration,
+		Language:  existingSong.Language,
+		UpdatedAt: time_utils.GetCurrentUnixTime(),
+		Status:    existingSong.Status,
 	}
+
+	err := validator_utils.ValidateStruct(songRowPut)
+
+	if err != nil {
+		return song.Song{}, fmt.Errorf("song is not valid: %w", err)
+	}
+
 	sql := `
 				UPDATE Song 
-				SET name = :name, genre = :genre.value, artist = :artist, duration = :duration, language = :language, rating = :rating, 
-						resource_id = :resourceid, resource_link = :resourcelink, created_at = :createdat, updated_at = :updatedat, status = :status
+				SET name = :name, genre = :genre.value, artist = :artist, duration = :duration, language = :language,
+						updated_at = :updatedat, status = :status
 				WHERE song_id = :songid`
 
-	_, err := db.Client.NamedExecContext(ctx, sql, songRow)
+	_, err = db.Client.NamedExecContext(ctx, sql, songRowPut)
 
 	if err != nil {
 		return song.Song{}, fmt.Errorf("could not update song: %w", err)
@@ -233,4 +254,22 @@ func (db *Database) DeleteSong(ctx context.Context, id uint64) error {
 	}
 
 	return nil
+}
+
+func (db *Database) DoesSongExist(ctx context.Context, id uint64) (bool, error) {
+	sql := "SELECT COUNT(*) from Song where song_id = ?"
+	row, err := db.Client.QueryContext(ctx, sql, id)
+	defer row.Close()
+
+	if err != nil {
+		return false, fmt.Errorf("could not check if song exists: %w", err)
+	}
+
+	for row.Next() {
+		var count uint64
+		row.Scan(&count)
+		return count > 0, nil
+	}
+
+	return false, nil
 }
