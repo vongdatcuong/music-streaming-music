@@ -11,10 +11,11 @@ import (
 type Handler struct {
 	grpcPbV1.UnimplementedSongServiceServer
 	grpcPbV1.UnimplementedPlaylistServiceServer
+	songService SongServiceGrpc
 }
 
-func NewHandler() *Handler {
-	h := &Handler{}
+func NewHandler(songService SongServiceGrpc) *Handler {
+	h := &Handler{songService: songService}
 
 	return h
 }

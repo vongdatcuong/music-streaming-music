@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
 	"github.com/vongdatcuong/music-streaming-music/internal/database"
+	"github.com/vongdatcuong/music-streaming-music/internal/modules/song"
 	grpcTransport "github.com/vongdatcuong/music-streaming-music/internal/transport/grpc"
 )
 
@@ -28,11 +29,9 @@ func Run() error {
 		return err
 	}
 
-	/*if err = migration.Down(); err != nil {
-		return fmt.Errorf("could not down the migration: %w", err)
-	}*/
+	songService := song.NewService(db)
 
-	grpcHandler := grpcTransport.NewHandler()
+	grpcHandler := grpcTransport.NewHandler(songService)
 
 	if err := grpcHandler.Server(); err != nil {
 		return err
