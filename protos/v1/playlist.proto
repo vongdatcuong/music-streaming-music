@@ -10,7 +10,7 @@ import "protos/v1/song.proto";
 message Playlist {
   uint64 playlist_id = 1;
   string name = 2;
-  string created_by = 3;
+  music_streaming.music.common.UserDetail created_by = 3; 
   uint64 created_at = 4;
   uint64 updated_at = 5;
   uint32 status = 6;
@@ -21,7 +21,7 @@ service PlaylistService {
   rpc GetPlaylistList (GetPlaylistListRequest) returns (GetPlaylistListResponse);
   rpc GetPlaylistDetails (GetPlaylistDetailsRequest) returns (GetPlaylistDetailsResponse);
   rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse);
-  rpc UpdatePlaylist (UpdatePlaylistRequest) returns (UpdatePlaylistResponse);
+  rpc PutPlaylist (PutPlaylistRequest) returns (PutPlaylistResponse);
   rpc DeletePlaylist (DeletePlaylistRequest) returns (DeletePlaylistResponse);
 }
 
@@ -33,7 +33,7 @@ message GetPlaylistListRequest {
 
 message GetPlaylistListFilter {
   string name = 1;
-  string created_by = 2;
+  string created_by = 2;  // Filter by Email
   uint64 created_time_from = 3;
   uint64 created_time_to = 4;
 }
@@ -46,7 +46,7 @@ message GetPlaylistListResponse {
 
 message GetPlaylistListResponseData {
   repeated Playlist playlists = 1;
-  uint64 total_count = 2;
+  optional uint64 total_count = 2;
 }
 
 // Get Playlist Details
@@ -67,19 +67,21 @@ message GetPlaylistDetailsResponseData {
 // Create Playlist
 message CreatePlaylistRequest {
   Playlist playlist = 1;
+  repeated uint64 song_ids = 2;
 }
 
 message CreatePlaylistResponse {
-  uint32 error = 2;
-  string error_msg = 3;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
 }
 
-// Update Playlist
-message UpdatePlaylistRequest {
+// Put Playlist
+message PutPlaylistRequest {
   Playlist playlist = 1;
+  repeated uint64 song_ids = 2;
 }
 
-message UpdatePlaylistResponse {
+message PutPlaylistResponse {
   optional uint32 error = 2;
   optional string error_msg = 3;
 }

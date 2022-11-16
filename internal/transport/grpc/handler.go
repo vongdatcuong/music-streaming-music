@@ -11,7 +11,8 @@ import (
 type Handler struct {
 	grpcPbV1.UnimplementedSongServiceServer
 	grpcPbV1.UnimplementedPlaylistServiceServer
-	songService SongServiceGrpc
+	songService     SongServiceGrpc
+	playlistService PlaylistServiceGrpc
 }
 
 func NewHandler(songService SongServiceGrpc) *Handler {
