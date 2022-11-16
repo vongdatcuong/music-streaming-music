@@ -94,7 +94,7 @@ func (s *SongService) PutSong(ctx context.Context, existingSong Song) (Song, err
 	doesExist, err := s.store.DoesSongExist(ctx, songID)
 
 	if err != nil {
-		return Song{}, nil
+		return Song{}, err
 	}
 
 	if !doesExist {

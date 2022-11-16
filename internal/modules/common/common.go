@@ -9,3 +9,8 @@ type PaginationInfo struct {
 	Offset uint64
 	Limit  uint64
 }
+
+type UserDetail struct {
+	UserID uint64
+	Email  string
+}
