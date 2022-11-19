@@ -5,6 +5,7 @@ package music_streaming.music.song;
 option go_package="./protos/v1/pb";
 
 import "protos/v1/common.proto";
+import "google/api/annotations.proto";
 
 message Song {
   uint64 song_id = 1;
@@ -15,7 +16,7 @@ message Song {
   string language = 6;
   float rating = 7;
   // Check this
-  uint64 resource_id = 8;
+  string resource_id = 8;
   string resource_link = 9;
   uint64 created_at = 10;
   uint64 updated_at = 11;
@@ -23,11 +24,35 @@ message Song {
 }
 
 service SongService {
-  rpc GetSongList (GetSongListRequest) returns (GetSongListResponse);
-  rpc GetSongDetails (GetSongDetailsRequest) returns (GetSongDetailsResponse);
-  rpc CreateSong (CreateSongRequest) returns (CreateSongResponse);
-  rpc PutSong (PutSongRequest) returns (PutSongResponse);
-  rpc DeleteSong (DeleteSongRequest) returns (DeleteSongResponse);
+  rpc GetSongList (GetSongListRequest) returns (GetSongListResponse) {
+    option (google.api.http) = {
+      post: "/v1/song/list"
+      body: "*"
+    };
+  };
+  rpc GetSongDetails (GetSongDetailsRequest) returns (GetSongDetailsResponse) {
+    option (google.api.http) = {
+      get: "/v1/song/details/{song_id}"
+    };
+  };
+  rpc CreateSong (CreateSongRequest) returns (CreateSongResponse) {
+    option (google.api.http) = {
+      post: "/v1/song/create_song",
+      body: "*"
+    };
+  };
+  rpc PutSong (PutSongRequest) returns (PutSongResponse) {
+    option (google.api.http) = {
+      put: "/v1/song/put_song",
+      body: "*"
+    };
+  };
+  rpc DeleteSong (DeleteSongRequest) returns (DeleteSongResponse) {
+    option (google.api.http) = {
+      delete: "/v1/song/delete_song/{song_id}"
+    };
+  };
+  rpc UploadSong (UploadSongRequest) returns (UploadSongResponse);
 }
 
 // Get Song List

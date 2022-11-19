@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS Song (
     `duration` INT UNSIGNED NOT NULL, 
     `language` VARCHAR(10) NOT NULL,
     `rating` FLOAT DEFAULT 0,
-    `resource_id` BIGINT(20) UNSIGNED NOT NULL,
+    `resource_id` CHAR(36) NOT NULL,
     `resource_link` VARCHAR(10000) NOT NULL,
     `created_at` BIGINT(20) NOT NULL,
     `updated_at` BIGINT(20) NOT NULL,

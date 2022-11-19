@@ -39,7 +39,7 @@ type Song struct {
 	Duration     uint32
 	Language     constants.LANGUAGE_ENUM
 	Rating       float32
-	ResourceID   uint64
+	ResourceID   string
 	ResourceLink string
 	CreatedAt    uint64
 	UpdatedAt    uint64
@@ -75,9 +75,9 @@ func (s *SongService) GetSongDetails(ctx context.Context, id uint64) (Song, erro
 func (s *SongService) CreateSong(ctx context.Context, newSong Song) (Song, error) {
 	wrappedSong := Song(newSong)
 	wrappedSong.Duration = 234 // calculate duration from the audio file its self
-	wrappedSong.ResourceID = 1
+	wrappedSong.ResourceID = "1"
 	wrappedSong.ResourceLink = "empty link"
-	wrappedSong.Rating = 11
+	wrappedSong.Rating = 1
 	wrappedSong.Status = constants.ACTIVE_STATUS_ACTIVE
 
 	song, err := s.store.CreateSong(ctx, wrappedSong)

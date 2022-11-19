@@ -23,7 +23,7 @@ type SongRow struct {
 	Duration     uint32
 	Language     constants.LANGUAGE_ENUM
 	Rating       float32
-	ResourceID   uint64
+	ResourceID   string
 	ResourceLink string
 	CreatedAt    uint64
 	UpdatedAt    uint64
@@ -37,7 +37,7 @@ type SongRowCreate struct {
 	Duration     uint32                  `validate:"required"`
 	Language     constants.LANGUAGE_ENUM `validate:"required"`
 	Rating       float32                 `validate:"required,max=10"`
-	ResourceID   uint64                  `validate:"required"`
+	ResourceID   string                  `validate:"required"`
 	ResourceLink string                  `validate:"required"`
 	CreatedAt    uint64
 	UpdatedAt    uint64
