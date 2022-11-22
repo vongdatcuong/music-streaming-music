@@ -26,33 +26,32 @@ message Song {
 service SongService {
   rpc GetSongList (GetSongListRequest) returns (GetSongListResponse) {
     option (google.api.http) = {
-      post: "/v1/song/list"
+      post: "/gateway/v1/song/list"
       body: "*"
     };
   };
   rpc GetSongDetails (GetSongDetailsRequest) returns (GetSongDetailsResponse) {
     option (google.api.http) = {
-      get: "/v1/song/details/{song_id}"
+      get: "/gateway/v1/song/details/{song_id}"
     };
   };
   rpc CreateSong (CreateSongRequest) returns (CreateSongResponse) {
     option (google.api.http) = {
-      post: "/v1/song/create_song",
+      post: "/gateway/v1/song/create_song",
       body: "*"
     };
   };
   rpc PutSong (PutSongRequest) returns (PutSongResponse) {
     option (google.api.http) = {
-      put: "/v1/song/put_song",
+      put: "/gateway/v1/song/put_song",
       body: "*"
     };
   };
   rpc DeleteSong (DeleteSongRequest) returns (DeleteSongResponse) {
     option (google.api.http) = {
-      delete: "/v1/song/delete_song/{song_id}"
+      delete: "/gateway/v1/song/delete_song/{song_id}"
     };
   };
-  rpc UploadSong (UploadSongRequest) returns (UploadSongResponse);
 }
 
 // Get Song List

@@ -29,6 +29,8 @@ services:
       DB_PORT: "3306"
       GRPC_PORT: "8001"
       REST_PORT: "8011"
+      EXPOSED_STORAGE_PREFIX: "/s"
+      INTERNAL_STORAGE_PREFIX: "./storage"
     ports:
       - "8001:8001"
       - "8011:8011"

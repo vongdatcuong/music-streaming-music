@@ -17,10 +17,15 @@ type Handler struct {
 	grpcPbV1.UnimplementedPlaylistServiceServer
 	songService     SongServiceGrpc
 	playlistService PlaylistServiceGrpc
+	storageService  StorageService
 }
 
-func NewHandler(songService SongServiceGrpc) *Handler {
-	h := &Handler{songService: songService}
+type StorageService interface {
+	CreateFile(content []byte, fileName string, folderPath string) (string, string, error)
+}
+
+func NewHandler(songService SongServiceGrpc, storageService StorageService) *Handler {
+	h := &Handler{songService: songService, storageService: storageService}
 
 	return h
 }
@@ -57,8 +62,16 @@ func (h *Handler) RunRestServer(port string, channel chan error) {
 		channel <- fmt.Errorf("could not listen on port %s: %w", port, err)
 		return
 	}
+	httpMux := http.NewServeMux()
 
-	if err := http.Serve(restLis, gwmux); err != nil {
+	// Extra handlers
+	gwmux.HandlePath("POST", "/gateway/v1/song/upload_song", h.UploadSong)
+	httpMux.Handle("/", gwmux)
+	prefix := os.Getenv("EXPOSED_STORAGE_PREFIX") + "/"
+	fileServer := http.FileServer(http.Dir(string(os.Getenv("INTERNAL_STORAGE_PREFIX"))))
+	httpMux.Handle(prefix, http.StripPrefix(prefix, fileServer))
+
+	if err := http.Serve(restLis, httpMux); err != nil {
 		channel <- fmt.Errorf("could not serve Rest server on port %s: %w", port, err)
 	}
 }
