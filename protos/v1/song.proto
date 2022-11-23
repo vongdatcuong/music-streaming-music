@@ -12,7 +12,7 @@ message Song {
   string name = 2;
   music_streaming.music.common.NameValueInt32 genre = 3; // Update this
   string artist = 4;
-  uint32 duration = 5;
+  float duration = 5;
   string language = 6;
   float rating = 7;
   // Check this
@@ -64,7 +64,7 @@ message GetSongListFilter {
   string name = 1;
   uint32 genre = 2;
   string artist = 3;
-  uint32 duration = 4;
+  float duration = 4;
   string language = 5;
   uint64 created_time_from = 6;
   uint64 created_time_to = 7;

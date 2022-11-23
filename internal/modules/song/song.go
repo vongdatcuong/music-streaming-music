@@ -1,8 +1,11 @@
 package song
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"mime/multipart"
 
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/common"
 	constants "github.com/vongdatcuong/music-streaming-music/internal/modules/constants"
@@ -12,7 +15,7 @@ type SongListFilter struct {
 	Name            *string
 	Genre           *uint32
 	Artist          *string
-	Duration        *uint32
+	Duration        *float32
 	Language        *constants.LANGUAGE_ENUM
 	CreatedTimeFrom *uint64
 	CreatedTimeTo   *uint64
@@ -25,10 +28,16 @@ type SongStore interface {
 	PutSong(context.Context, Song) (Song, error)
 	DeleteSong(context.Context, uint64) error
 	DoesSongExist(context.Context, uint64) (bool, error)
+	UpdateSongResource(context.Context, uint64, string, string) error // Unused for now
+}
+
+type StorageService interface {
+	CreateFile(content []byte, fileName string, folderPath string) (string, string, error)
 }
 
 type SongService struct {
-	store SongStore
+	store          SongStore
+	storageService StorageService
 }
 
 type Song struct {
@@ -36,7 +45,7 @@ type Song struct {
 	Name         string
 	Genre        common.NameValueInt32
 	Artist       string
-	Duration     uint32
+	Duration     float32
 	Language     constants.LANGUAGE_ENUM
 	Rating       float32
 	ResourceID   string
@@ -46,9 +55,10 @@ type Song struct {
 	Status       constants.ACTIVE_STATUS
 }
 
-func NewService(store SongStore) *SongService {
+func NewService(store SongStore, storageService StorageService) *SongService {
 	return &SongService{
-		store: store,
+		store:          store,
+		storageService: storageService,
 	}
 }
 
@@ -74,9 +84,6 @@ func (s *SongService) GetSongDetails(ctx context.Context, id uint64) (Song, erro
 
 func (s *SongService) CreateSong(ctx context.Context, newSong Song) (Song, error) {
 	wrappedSong := Song(newSong)
-	wrappedSong.Duration = 234 // calculate duration from the audio file its self
-	wrappedSong.ResourceID = "1"
-	wrappedSong.ResourceLink = "empty link"
 	wrappedSong.Rating = 1
 	wrappedSong.Status = constants.ACTIVE_STATUS_ACTIVE
 
@@ -128,4 +135,25 @@ func (s *SongService) DeleteSong(ctx context.Context, id uint64) error {
 	}
 
 	return nil
+}
+
+func (s *SongService) UploadSong(ctx context.Context, header *multipart.FileHeader, file multipart.File) (string, string, error) {
+	buf := bytes.NewBuffer(nil)
+
+	if _, err := io.Copy(buf, file); err != nil {
+		return "", "", fmt.Errorf("could not read file content: %v", err)
+	}
+
+	fileName, fileLink, err := s.storageService.CreateFile(buf.Bytes(), header.Filename, constants.STORAGE_SONG_PATH)
+
+	if err != nil {
+		return "", "", fmt.Errorf("could not create file: %v", err)
+	}
+
+	if err != nil {
+		return "", "", err
+	}
+
+	// Use these fileName and fileLink to fill in Create/Put Song requests
+	return fileName, fileLink, nil
 }

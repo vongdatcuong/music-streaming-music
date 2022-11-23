@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"mime/multipart"
 
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/common"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/constants"
@@ -16,6 +17,7 @@ type SongServiceGrpc interface {
 	CreateSong(context.Context, song.Song) (song.Song, error)
 	PutSong(context.Context, song.Song) (song.Song, error)
 	DeleteSong(context.Context, uint64) error
+	UploadSong(context.Context, *multipart.FileHeader, multipart.File) (string, string, error)
 }
 
 func convertSongToGrpcSong(mySong song.Song) *grpcPbV1.Song {
@@ -116,10 +118,13 @@ func (h *Handler) GetSongDetails(ctx context.Context, req *grpcPbV1.GetSongDetai
 
 func (h *Handler) CreateSong(ctx context.Context, req *grpcPbV1.CreateSongRequest) (*grpcPbV1.CreateSongResponse, error) {
 	newSong := song.Song{
-		Name:     req.Song.Name,
-		Genre:    common.NameValueInt32{Name: "", Value: req.Song.Genre.Value},
-		Artist:   req.Song.Artist,
-		Language: constants.LANGUAGE_ENUM(req.Song.Language),
+		Name:         req.Song.Name,
+		Genre:        common.NameValueInt32{Name: "", Value: req.Song.Genre.Value},
+		Artist:       req.Song.Artist,
+		Language:     constants.LANGUAGE_ENUM(req.Song.Language),
+		Duration:     req.Song.Duration, // Passed by FE
+		ResourceID:   req.Song.ResourceId,
+		ResourceLink: req.Song.ResourceLink,
 	}
 	_, err := h.songService.CreateSong(ctx, newSong)
 

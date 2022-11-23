@@ -20,7 +20,7 @@ type SongRow struct {
 	Name         string
 	Genre        common.NameValueInt32
 	Artist       string
-	Duration     uint32
+	Duration     float32
 	Language     constants.LANGUAGE_ENUM
 	Rating       float32
 	ResourceID   string
@@ -34,7 +34,7 @@ type SongRowCreate struct {
 	Name         string                  `validate:"required,max=256"`
 	Genre        common.NameValueInt32   `validate:"required"`
 	Artist       string                  `validate:"required"`
-	Duration     uint32                  `validate:"required"`
+	Duration     float32                 `validate:"required"`
 	Language     constants.LANGUAGE_ENUM `validate:"required"`
 	Rating       float32                 `validate:"required,max=10"`
 	ResourceID   string                  `validate:"required"`
@@ -49,10 +49,15 @@ type SongRowPut struct {
 	Name      string                  `validate:"required,max=256"`
 	Genre     common.NameValueInt32   `validate:"required"`
 	Artist    string                  `validate:"required"`
-	Duration  uint32                  `validate:"required"`
+	Duration  float32                 `validate:"required"`
 	Language  constants.LANGUAGE_ENUM `validate:"required"`
 	UpdatedAt uint64
 	Status    constants.ACTIVE_STATUS `validate:"required"`
+}
+
+type UpdateSongResource struct {
+	ResourceID   string `validate:"required"`
+	ResourceLink string `validate:"required"`
 }
 
 func (db *Database) GetSongList(ctx context.Context, pagination common.PaginationInfo, filter song.SongListFilter) ([]song.Song, uint64, error) {
@@ -272,4 +277,23 @@ func (db *Database) DoesSongExist(ctx context.Context, id uint64) (bool, error) 
 	}
 
 	return false, nil
+}
+
+// TODO: Maybe we will use this in the future when we have a feat to let users update only song's resources
+func (db *Database) UpdateSongResource(ctx context.Context, id uint64, resourceID string, resourceLink string) error {
+	updateSongResource := UpdateSongResource{ResourceID: resourceID, ResourceLink: resourceLink}
+
+	err := validator_utils.ValidateStruct(updateSongResource)
+
+	if err != nil {
+		return fmt.Errorf("resource is invalid: %w", err)
+	}
+
+	result := db.GormClient.Table(SongTableName).Where("song_id = ?", id).Updates(updateSongResource)
+
+	if result.Error != nil {
+		return fmt.Errorf("could not update song resource: %w", result.Error)
+	}
+
+	return nil
 }

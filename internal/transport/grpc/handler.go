@@ -17,15 +17,10 @@ type Handler struct {
 	grpcPbV1.UnimplementedPlaylistServiceServer
 	songService     SongServiceGrpc
 	playlistService PlaylistServiceGrpc
-	storageService  StorageService
 }
 
-type StorageService interface {
-	CreateFile(content []byte, fileName string, folderPath string) (string, string, error)
-}
-
-func NewHandler(songService SongServiceGrpc, storageService StorageService) *Handler {
-	h := &Handler{songService: songService, storageService: storageService}
+func NewHandler(songService SongServiceGrpc) *Handler {
+	h := &Handler{songService: songService}
 
 	return h
 }
