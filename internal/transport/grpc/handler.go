@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcPbV1 "github.com/vongdatcuong/music-streaming-music/protos/v1/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type Handler struct {
@@ -19,8 +20,8 @@ type Handler struct {
 	playlistService PlaylistServiceGrpc
 }
 
-func NewHandler(songService SongServiceGrpc) *Handler {
-	h := &Handler{songService: songService}
+func NewHandler(songService SongServiceGrpc, playlistService PlaylistServiceGrpc) *Handler {
+	h := &Handler{songService: songService, playlistService: playlistService}
 
 	return h
 }
@@ -42,13 +43,29 @@ func (h *Handler) RunGrpcServer(port string, channel chan error) {
 }
 
 func (h *Handler) RunRestServer(port string, channel chan error) {
-	gwmux := runtime.NewServeMux()
+	gwmux := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			MarshalOptions: protojson.MarshalOptions{
+				UseProtoNames: true, // Rest Server to return the same fields as protobuf
+			},
+			UnmarshalOptions: protojson.UnmarshalOptions{
+				DiscardUnknown: true,
+			},
+		}),
+	)
 	muxCtx, cancelMuxCtx := context.WithCancel(context.Background())
 	defer cancelMuxCtx()
 	err := grpcPbV1.RegisterSongServiceHandlerServer(muxCtx, gwmux, h)
 
 	if err != nil {
-		channel <- fmt.Errorf("Failed to register gateway: %w", err)
+		channel <- fmt.Errorf("Failed to register Song Rest endpoints: %w", err)
+		return
+	}
+
+	err = grpcPbV1.RegisterPlaylistServiceHandlerServer(muxCtx, gwmux, h)
+
+	if err != nil {
+		channel <- fmt.Errorf("Failed to register Playlist Rest endpoints: %w", err)
 		return
 	}
 

@@ -19,10 +19,11 @@ type PlaylistListFilter struct {
 type PlaylistStore interface {
 	GetPlaylistList(context.Context, common.PaginationInfo, PlaylistListFilter) ([]Playlist, uint64, error)
 	GetPlaylistDetails(context.Context, uint64) (Playlist, error)
-	CreatePlaylist(context.Context, Playlist) (Playlist, error)
+	CreatePlaylist(context.Context, Playlist, []uint64) (Playlist, error)
 	PutPlaylist(context.Context, Playlist) (Playlist, error)
 	DeletePlaylist(context.Context, uint64) error
 	DoesPlaylistExist(context.Context, uint64) (bool, error)
+	UpdatePlaylistSongs(context.Context, uint64, []uint64) error
 }
 
 type PlaylistService struct {
@@ -32,7 +33,7 @@ type PlaylistService struct {
 type Playlist struct {
 	PlaylistID uint64
 	Name       string
-	CreatedBy  common.UserDetail
+	CreatedBy  string
 	CreatedAt  uint64
 	UpdatedAt  uint64
 	Status     constants.ACTIVE_STATUS
@@ -65,10 +66,10 @@ func (s *PlaylistService) GetPlaylistDetails(ctx context.Context, id uint64) (Pl
 	return playlist, nil
 }
 
-func (s *PlaylistService) CreatePlaylist(ctx context.Context, newPlaylist Playlist) (Playlist, error) {
+func (s *PlaylistService) CreatePlaylist(ctx context.Context, newPlaylist Playlist, songIDs []uint64) (Playlist, error) {
 	wrappedPlaylist := Playlist(newPlaylist)
 	wrappedPlaylist.Status = constants.ACTIVE_STATUS_ACTIVE
-	playlist, err := s.store.CreatePlaylist(ctx, wrappedPlaylist)
+	playlist, err := s.store.CreatePlaylist(ctx, wrappedPlaylist, songIDs)
 
 	if err != nil {
 		return Playlist{}, err
@@ -102,7 +103,7 @@ func (s *PlaylistService) DeletePlaylist(ctx context.Context, id uint64) error {
 	doesExist, err := s.store.DoesPlaylistExist(ctx, id)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !doesExist {
@@ -110,6 +111,26 @@ func (s *PlaylistService) DeletePlaylist(ctx context.Context, id uint64) error {
 	}
 
 	err = s.store.DeletePlaylist(ctx, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *PlaylistService) UpdatePlaylistSongs(ctx context.Context, playlistID uint64, songIDs []uint64) error {
+	doesExist, err := s.store.DoesPlaylistExist(ctx, playlistID)
+
+	if err != nil {
+		return err
+	}
+
+	if !doesExist {
+		return fmt.Errorf("could not find playlist with id %d", playlistID)
+	}
+
+	err = s.store.UpdatePlaylistSongs(ctx, playlistID, songIDs)
 
 	if err != nil {
 		return err

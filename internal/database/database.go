@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 type Database struct {
@@ -34,7 +35,11 @@ func NewDatabase() (*Database, error) {
 		return &Database{}, fmt.Errorf("could not connect to database: %w", err)
 	}
 
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{Conn: db.DB}), &gorm.Config{})
+	gormDB, err := gorm.Open(mysql.New(mysql.Config{Conn: db.DB}), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true,
+		},
+	})
 
 	if err != nil {
 		return &Database{}, fmt.Errorf("could open gorm connection: %w", err)

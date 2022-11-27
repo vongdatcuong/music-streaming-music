@@ -13,53 +13,6 @@ import (
 	validator_utils "github.com/vongdatcuong/music-streaming-music/internal/modules/utils/validator"
 )
 
-// 12 fields
-// Put struct
-type SongRow struct {
-	SongID       uint64
-	Name         string
-	Genre        common.NameValueInt32
-	Artist       string
-	Duration     float32
-	Language     constants.LANGUAGE_ENUM
-	Rating       float32
-	ResourceID   string
-	ResourceLink string
-	CreatedAt    uint64
-	UpdatedAt    uint64
-	Status       constants.ACTIVE_STATUS `validate:"required"`
-}
-
-type SongRowCreate struct {
-	Name         string                  `validate:"required,max=256"`
-	Genre        common.NameValueInt32   `validate:"required"`
-	Artist       string                  `validate:"required"`
-	Duration     float32                 `validate:"required"`
-	Language     constants.LANGUAGE_ENUM `validate:"required"`
-	Rating       float32                 `validate:"required,max=10"`
-	ResourceID   string                  `validate:"required"`
-	ResourceLink string                  `validate:"required"`
-	CreatedAt    uint64
-	UpdatedAt    uint64
-	Status       constants.ACTIVE_STATUS `validate:"required"`
-}
-
-type SongRowPut struct {
-	SongID    uint64                  `validate:"required"`
-	Name      string                  `validate:"required,max=256"`
-	Genre     common.NameValueInt32   `validate:"required"`
-	Artist    string                  `validate:"required"`
-	Duration  float32                 `validate:"required"`
-	Language  constants.LANGUAGE_ENUM `validate:"required"`
-	UpdatedAt uint64
-	Status    constants.ACTIVE_STATUS `validate:"required"`
-}
-
-type UpdateSongResource struct {
-	ResourceID   string `validate:"required"`
-	ResourceLink string `validate:"required"`
-}
-
 func (db *Database) GetSongList(ctx context.Context, pagination common.PaginationInfo, filter song.SongListFilter) ([]song.Song, uint64, error) {
 	equalQueries := make(map[string]any)
 	greaterEqualQueries := make(map[string]any)
@@ -105,7 +58,7 @@ func (db *Database) GetSongList(ctx context.Context, pagination common.Paginatio
 	var totalCount uint64
 	countQueryStr := database_utils.GetSqlWhereClause(strings.Join(wheres, " AND "))
 	countSql := `	SELECT COUNT(*)
-								FROM Song s ` + countQueryStr
+								FROM song s ` + countQueryStr
 	rows2, err := db.Client.QueryContext(ctx, countSql, values...)
 	defer rows2.Close()
 
@@ -133,8 +86,8 @@ func (db *Database) GetSongList(ctx context.Context, pagination common.Paginatio
 	queryStr := database_utils.GetSqlWhereClause(strings.Join(wheres, " AND "))
 
 	sql := `SELECT s.*, g.name
-					FROM Song s 
-					INNER JOIN Genre g ON s.genre = g.genre_id ` + queryStr + ` LIMIT ?, ?`
+					FROM song s 
+					INNER JOIN genre g ON s.genre = g.genre_id ` + queryStr + ` LIMIT ?, ?`
 	rows, err := db.Client.QueryContext(ctx, sql, values...)
 	defer rows.Close()
 
@@ -161,8 +114,8 @@ func (db *Database) GetSongList(ctx context.Context, pagination common.Paginatio
 func (db *Database) GetSongDetails(ctx context.Context, id uint64) (song.Song, error) {
 	var songRow SongRow
 	sql := `SELECT s.*, g.name 
-					FROM Song s 
-					INNER JOIN Genre g ON s.genre = g.genre_id
+					FROM song s 
+					INNER JOIN genre g ON s.genre = g.genre_id
 	 				WHERE s.song_id = ? AND s.status = ?`
 	row := db.Client.QueryRowContext(ctx, sql, id, constants.ACTIVE_STATUS_ACTIVE)
 	err := row.Scan(&songRow.SongID, &songRow.Name, &songRow.Genre.Value, &songRow.Artist, &songRow.Duration, &songRow.Language, &songRow.Rating,
@@ -195,7 +148,7 @@ func (db *Database) CreateSong(ctx context.Context, newSong song.Song) (song.Son
 		return song.Song{}, fmt.Errorf("song is not valid: %w", err)
 	}
 
-	sql := `INSERT INTO Song(name, genre, artist, duration, language, rating, resource_id, resource_link,
+	sql := `INSERT INTO song(name, genre, artist, duration, language, rating, resource_id, resource_link,
 						created_at, updated_at, status) VALUES (:name, :genre.value, :artist, :duration, :language, :rating, :resourceid, :resourcelink, :createdat,
 						:updatedat, :status)`
 
@@ -236,7 +189,7 @@ func (db *Database) PutSong(ctx context.Context, existingSong song.Song) (song.S
 	}
 
 	sql := `
-				UPDATE Song 
+				UPDATE song 
 				SET name = :name, genre = :genre.value, artist = :artist, duration = :duration, language = :language,
 						updated_at = :updatedat, status = :status
 				WHERE song_id = :songid`
@@ -251,7 +204,7 @@ func (db *Database) PutSong(ctx context.Context, existingSong song.Song) (song.S
 }
 
 func (db *Database) DeleteSong(ctx context.Context, id uint64) error {
-	sql := "DELETE FROM Song WHERE song_id = ?"
+	sql := "DELETE FROM song WHERE song_id = ?"
 	_, err := db.Client.ExecContext(ctx, sql, id)
 
 	if err != nil {
@@ -262,7 +215,7 @@ func (db *Database) DeleteSong(ctx context.Context, id uint64) error {
 }
 
 func (db *Database) DoesSongExist(ctx context.Context, id uint64) (bool, error) {
-	sql := "SELECT COUNT(*) from Song where song_id = ?"
+	sql := "SELECT COUNT(*) from song where song_id = ?"
 	row, err := db.Client.QueryContext(ctx, sql, id)
 	defer row.Close()
 

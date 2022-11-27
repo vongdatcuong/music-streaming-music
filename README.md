@@ -16,3 +16,9 @@ Music Streaming System - Music Service
 - Service static files on the Rest server
 - Implement a REST endpoint to upload song. It will return resource id and resource link for FE to pass into Create/Put Song requests
 - Research how to calculate audio file duration. Reach the conclusion to let the FE calculate it and pass the duration to the BE. Also update duration field from uint32 to float
+- Define Gorm Schemas and configurations. Able to return song list of playlists using gorm Preload (Join in sql)
+- Implement UploadPlaylistSongs endpoint, which allows to update song list of a playlist only
+
+Improvements can make
+
+- If fail to add songs to playlist, reverse creating the playlist

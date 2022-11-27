@@ -13,23 +13,10 @@ import (
 type PlaylistServiceGrpc interface {
 	GetPlaylistList(context.Context, common.PaginationInfo, playlist.PlaylistListFilter) ([]playlist.Playlist, uint64, error)
 	GetPlaylistDetails(context.Context, uint64) (playlist.Playlist, error)
-	CreatePlaylist(context.Context, playlist.Playlist) (playlist.Playlist, error)
+	CreatePlaylist(context.Context, playlist.Playlist, []uint64) (playlist.Playlist, error)
 	PutPlaylist(context.Context, playlist.Playlist) (playlist.Playlist, error)
 	DeletePlaylist(context.Context, uint64) error
-}
-
-func convertPlaylistToGrpcPlaylist(myPlaylist playlist.Playlist) *grpcPbV1.Playlist {
-	return &grpcPbV1.Playlist{
-		PlaylistId: myPlaylist.PlaylistID,
-		Name:       myPlaylist.Name,
-		CreatedBy: &grpcPbV1.UserDetail{
-			UserId: myPlaylist.CreatedBy.UserID,
-			Email:  myPlaylist.CreatedBy.Email,
-		},
-		CreatedAt: myPlaylist.CreatedAt,
-		UpdatedAt: myPlaylist.UpdatedAt,
-		Status:    uint32(myPlaylist.Status),
-	}
+	UpdatePlaylistSongs(context.Context, uint64, []uint64) error
 }
 
 func (h *Handler) GetPlaylistList(ctx context.Context, req *grpcPbV1.GetPlaylistListRequest) (*grpcPbV1.GetPlaylistListResponse, error) {
@@ -103,13 +90,11 @@ func (h *Handler) GetPlaylistDetails(ctx context.Context, req *grpcPbV1.GetPlayl
 
 func (h *Handler) CreatePlaylist(ctx context.Context, req *grpcPbV1.CreatePlaylistRequest) (*grpcPbV1.CreatePlaylistResponse, error) {
 	newPlaylist := playlist.Playlist{
-		Name: req.Playlist.Name,
-		CreatedBy: common.UserDetail{
-			UserID: req.Playlist.CreatedBy.UserId,
-		},
+		Name:      req.Playlist.Name,
+		CreatedBy: req.Playlist.CreatedBy,
 	}
 
-	_, err := h.playlistService.CreatePlaylist(ctx, newPlaylist)
+	_, err := h.playlistService.CreatePlaylist(ctx, newPlaylist, req.SongIds)
 
 	if err != nil {
 		return &grpcPbV1.CreatePlaylistResponse{
@@ -128,10 +113,8 @@ func (h *Handler) PutPlaylist(ctx context.Context, req *grpcPbV1.PutPlaylistRequ
 	newPlaylist := playlist.Playlist{
 		PlaylistID: req.Playlist.PlaylistId,
 		Name:       req.Playlist.Name,
-		CreatedBy: common.UserDetail{
-			UserID: req.Playlist.CreatedBy.UserId,
-		},
-		Status: constants.ACTIVE_STATUS(req.Playlist.Status),
+		CreatedBy:  req.Playlist.CreatedBy,
+		Status:     constants.ACTIVE_STATUS(req.Playlist.Status),
 	}
 	_, err := h.playlistService.PutPlaylist(ctx, newPlaylist)
 
@@ -159,6 +142,22 @@ func (h *Handler) DeletePlaylist(ctx context.Context, req *grpcPbV1.DeletePlayli
 	}
 
 	return &grpcPbV1.DeletePlaylistResponse{
+		Error:    nil,
+		ErrorMsg: nil,
+	}, nil
+}
+
+func (h *Handler) UpdatePlaylistSongs(ctx context.Context, req *grpcPbV1.UpdatePlaylistSongsRequest) (*grpcPbV1.UpdatePlaylistSongsResponse, error) {
+	err := h.playlistService.UpdatePlaylistSongs(ctx, req.PlaylistId, req.SongIds)
+
+	if err != nil {
+		return &grpcPbV1.UpdatePlaylistSongsResponse{
+			Error:    common_utils.GetUInt32Pointer(1),
+			ErrorMsg: common_utils.GetStringPointer(err.Error()),
+		}, nil
+	}
+
+	return &grpcPbV1.UpdatePlaylistSongsResponse{
 		Error:    nil,
 		ErrorMsg: nil,
 	}, nil

@@ -6,11 +6,12 @@ option go_package="./protos/v1/pb";
 
 import "protos/v1/common.proto";
 import "protos/v1/song.proto";
+import "google/api/annotations.proto";
 
 message Playlist {
   uint64 playlist_id = 1;
   string name = 2;
-  music_streaming.music.common.UserDetail created_by = 3; 
+  string created_by = 3; 
   uint64 created_at = 4;
   uint64 updated_at = 5;
   uint32 status = 6;
@@ -18,11 +19,41 @@ message Playlist {
 }
 
 service PlaylistService {
-  rpc GetPlaylistList (GetPlaylistListRequest) returns (GetPlaylistListResponse);
-  rpc GetPlaylistDetails (GetPlaylistDetailsRequest) returns (GetPlaylistDetailsResponse);
-  rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse);
-  rpc PutPlaylist (PutPlaylistRequest) returns (PutPlaylistResponse);
-  rpc DeletePlaylist (DeletePlaylistRequest) returns (DeletePlaylistResponse);
+  rpc GetPlaylistList (GetPlaylistListRequest) returns (GetPlaylistListResponse) {
+    option (google.api.http) = {
+      post: "/gateway/v1/playlist/list",
+      body: "*"
+    };
+  };
+  rpc GetPlaylistDetails (GetPlaylistDetailsRequest) returns (GetPlaylistDetailsResponse) {
+    option (google.api.http) = {
+      get: "/gateway/v1/playlist/details/{playlist_id}"
+    };
+  };
+  rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse) {
+    option (google.api.http) = {
+      post: "/gateway/v1/playlist/create_playlist",
+      body: "*"
+    };
+  };
+  rpc PutPlaylist (PutPlaylistRequest) returns (PutPlaylistResponse) {
+    option (google.api.http) = {
+      put: "/gateway/v1/playlist/put_playlist",
+      body: "*"
+    };
+  };
+  rpc DeletePlaylist (DeletePlaylistRequest) returns (DeletePlaylistResponse) {
+    option (google.api.http) = {
+      delete: "/gateway/v1/playlist/delete_playlist/{playlist_id}"
+    };
+  };
+
+  rpc UpdatePlaylistSongs (UpdatePlaylistSongsRequest) returns (UpdatePlaylistSongsResponse) {
+    option (google.api.http) = {
+      post: "/gateway/v1/playlist/update_playlist_songs",
+      body: "*"
+    };
+  };
 }
 
 // Get Playlist List
@@ -92,6 +123,16 @@ message DeletePlaylistRequest {
 }
 
 message DeletePlaylistResponse {
+  optional uint32 error = 2;
+  optional string error_msg = 3;
+}
+
+message UpdatePlaylistSongsRequest {
+  uint64 playlist_id = 1;
+  repeated uint64 song_ids = 2;
+}
+
+message UpdatePlaylistSongsResponse {
   optional uint32 error = 2;
   optional string error_msg = 3;
 }

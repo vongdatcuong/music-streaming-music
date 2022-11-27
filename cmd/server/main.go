@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/vongdatcuong/music-streaming-music/internal/database"
+	"github.com/vongdatcuong/music-streaming-music/internal/modules/playlist"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/song"
+	"github.com/vongdatcuong/music-streaming-music/internal/modules/storage"
 	grpcTransport "github.com/vongdatcuong/music-streaming-music/internal/transport/grpc"
 )
 
@@ -29,9 +31,11 @@ func Run() error {
 		return err
 	}
 
-	songService := song.NewService(db)
+	storageService := storage.NewService()
+	songService := song.NewService(db, storageService)
+	playlistService := playlist.NewService(db)
 
-	grpcHandler := grpcTransport.NewHandler(songService)
+	grpcHandler := grpcTransport.NewHandler(songService, playlistService)
 
 	if err := grpcHandler.Server(); err != nil {
 		return err
@@ -42,6 +46,6 @@ func Run() error {
 
 func main() {
 	if err := Run(); err != nil {
-		log.Errorln(err)
+		logrus.Errorln(err)
 	}
 }
