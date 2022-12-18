@@ -21,36 +21,37 @@ message Playlist {
 service PlaylistService {
   rpc GetPlaylistList (GetPlaylistListRequest) returns (GetPlaylistListResponse) {
     option (google.api.http) = {
-      post: "/gateway/v1/playlist/list",
+      post: "/api/gateway/v1/playlist/list",
       body: "*"
     };
   };
   rpc GetPlaylistDetails (GetPlaylistDetailsRequest) returns (GetPlaylistDetailsResponse) {
     option (google.api.http) = {
-      get: "/gateway/v1/playlist/details/{playlist_id}"
+      post: "/api/gateway/v1/playlist/details",
+      body: "*"
     };
   };
   rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse) {
     option (google.api.http) = {
-      post: "/gateway/v1/playlist/create_playlist",
+      post: "/api/gateway/v1/playlist/create_playlist",
       body: "*"
     };
   };
   rpc PutPlaylist (PutPlaylistRequest) returns (PutPlaylistResponse) {
     option (google.api.http) = {
-      put: "/gateway/v1/playlist/put_playlist",
+      put: "/api/gateway/v1/playlist/put_playlist",
       body: "*"
     };
   };
   rpc DeletePlaylist (DeletePlaylistRequest) returns (DeletePlaylistResponse) {
     option (google.api.http) = {
-      delete: "/gateway/v1/playlist/delete_playlist/{playlist_id}"
+      post: "/api/gateway/v1/playlist/delete_playlist"
     };
   };
 
   rpc UpdatePlaylistSongs (UpdatePlaylistSongsRequest) returns (UpdatePlaylistSongsResponse) {
     option (google.api.http) = {
-      post: "/gateway/v1/playlist/update_playlist_songs",
+      post: "/api/gateway/v1/playlist/update_playlist_songs",
       body: "*"
     };
   };
@@ -58,7 +59,7 @@ service PlaylistService {
 
 // Get Playlist List
 message GetPlaylistListRequest {
-  music_streaming.music.common.PaginationInfo pagination_info = 1;
+  music_streaming.common.PaginationInfo pagination_info = 1;
   GetPlaylistListFilter filter = 2;
 }
 

@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package music_streaming.authentication.permission;
+
+option go_package="./protos/v1/pb";
+
+import "protos/v1/common.proto";
+import "google/api/annotations.proto";
+
+message Permission {
+  uint64 permission_id = 1;
+  string name = 2;
+  uint64 created_at = 8;
+  uint64 updated_at = 9;
+  uint32 status = 5;
+}
+
+service PermissionService {
+  rpc GetPermissionList (GetPermissionListRequest) returns (GetPermissionListResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/permission/list"
+      body: "*"
+    };
+  };
+  rpc CreatePermission (CreatePermissionRequest) returns (CreatePermissionResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/permission/create_permission",
+      body: "*"
+    };
+  };
+  rpc PutPermission (PutPermissionRequest) returns (PutPermissionResponse) {
+    option (google.api.http) = {
+      put: "/api/gateway/v1/permission/put_permission",
+      body: "*"
+    };
+  };
+  rpc CheckUserPermission (CheckUserPermissionRequest) returns (CheckUserPermissionResponse) {
+    option (google.api.http) = {
+      get: "/api/gateway/v1/permission/check_user_permission"
+    };
+  };
+}
+
+message GetPermissionListRequest {
+  music_streaming.common.MetaRequest meta = 1;
+}
+
+message GetPermissionListResponse {
+  GetPermissionListResponseData data = 1;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
+}
+
+message GetPermissionListResponseData {
+  repeated Permission permissions = 1;
+}
+
+message CreatePermissionRequest {
+  Permission permission = 1;
+}
+
+message CreatePermissionResponse {
+  optional uint32 error = 1;
+  optional string error_msg = 2;
+}
+
+message PutPermissionRequest {
+  Permission permission = 1;
+}
+
+message PutPermissionResponse {
+  optional uint32 error = 1;
+  optional string error_msg = 2;
+}
+
+message CheckUserPermissionRequest {
+  uint64 user_id = 1;
+  uint64 permission_id = 2;
+  string permission_name = 3;
+}
+
+message CheckUserPermissionResponse {
+  optional bool has_permission = 1;
+  optional bool is_authenticated = 2;
+  optional uint32 error = 3;
+  optional string error_msg = 4;
+}

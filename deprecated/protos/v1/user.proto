@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package music_streaming.authentication.user;
+
+option go_package="./protos/v1/pb";
+
+import "protos/v1/common.proto";
+import "google/api/annotations.proto";
+
+message User {
+  uint64 user_id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  uint32 status = 5;
+  string password = 6;
+  bool new_song_noti = 7;
+  uint64 created_at = 8;
+  uint64 updated_at = 9;
+  repeated string permissions = 10;
+}
+
+service UserService {
+  rpc GetUserList (GetUserListRequest) returns (GetUserListResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/user/list"
+      body: "*"
+    };
+  };
+  rpc GetUserDetails (GetUserDetailsRequest) returns (GetUserDetailsResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/user/details",
+      body: "*"
+    };
+  };
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/user/create_user",
+      body: "*"
+    };
+  };
+  rpc PutUser (PutUserRequest) returns (PutUserResponse) {
+    option (google.api.http) = {
+      put: "/api/gateway/v1/user/put_user",
+      body: "*"
+    };
+  };
+  rpc UpdateUserStatus (UpdateUserStatusRequest) returns (UpdateUserStatusResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/user/update_user_status",
+      body: "*"
+    };
+  };
+  rpc UpdateUserPermissions (UpdateUserPermissionsRequest) returns (UpdateUserPermissionsResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/user/update_user_permission",
+      body: "*"
+    };
+  };
+  rpc LogIn (LogInRequest) returns (LogInResponse) {
+    option (google.api.http) = {
+      post: "/api/gateway/v1/auth/login",
+      body: "*"
+    };
+  };
+}
+
+message GetUserListRequest {
+  music_streaming.common.PaginationInfo pagination_info = 1;
+  GetUserListRequestFilter filter = 2;
+}
+
+message GetUserListRequestFilter {
+  uint64 user_id = 1;
+  string email = 2;
+  uint32 status = 3;
+  uint64 created_time_from = 4;
+  uint64 created_time_to = 5;
+}
+
+message GetUserListResponse {
+  GetUserListResponseData data = 1;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
+}
+
+message GetUserListResponseData {
+  repeated User users = 1;
+  optional uint64 total_count = 2;
+}
+
+message GetUserDetailsRequest {
+  uint64 user_id = 1;
+}
+
+message GetUserDetailsResponse {
+  GetUserDetailsResponseData data = 1;
+  optional uint32 error = 2;
+  optional string error_msg = 3;
+}
+
+message GetUserDetailsResponseData {
+  User user = 1;
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message CreateUserResponse {
+  optional uint32 error = 1;
+  optional string error_msg = 2;
+}
+
+message PutUserRequest {
+  User user = 1;
+}
+
+message PutUserResponse {
+  optional uint32 error = 1;
+  optional string error_msg = 2;
+}
+
+message UpdateUserStatusRequest {
+  uint64 user_id = 1;
+  uint32 status = 2;
+}
+
+message UpdateUserStatusResponse {
+  optional uint32 error = 1;
+  optional string error_msg = 2;
+}
+
+message UpdateUserPermissionsRequest {
+  uint64 user_id = 1;
+  repeated uint64 added_permission_ids = 2;
+  repeated uint64 deleted_permission_ids = 3; 
+}
+
+message UpdateUserPermissionsResponse {
+  optional uint32 error = 1;
+  optional string error_msg = 2;
+}
+
+message LogInRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LogInResponse {
+  string token = 1;
+  User user = 2; 
+  optional uint32 error = 3;
+  optional string error_msg = 4;
+}

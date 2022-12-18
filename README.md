@@ -18,6 +18,7 @@ Music Streaming System - Music Service
 - Research how to calculate audio file duration. Reach the conclusion to let the FE calculate it and pass the duration to the BE. Also update duration field from uint32 to float
 - Define Gorm Schemas and configurations. Able to return song list of playlists using gorm Preload (Join in sql)
 - Implement UploadPlaylistSongs endpoint, which allows to update song list of a playlist only
+- Use jwt, grpc interceptor, http middleware to implement authentication and authorization
 
 Improvements can make
 

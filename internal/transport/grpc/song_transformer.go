@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/song"
-	grpcPbV1 "github.com/vongdatcuong/music-streaming-music/protos/v1/pb"
+	grpcPbV1 "github.com/vongdatcuong/music-streaming-protos/go/v1"
 )
 
 func convertSongToGrpcSong(mySong song.Song) *grpcPbV1.Song {
