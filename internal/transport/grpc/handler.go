@@ -18,10 +18,11 @@ type Handler struct {
 	grpcPbV1.UnimplementedPlaylistServiceServer
 	songService     SongServiceGrpc
 	playlistService PlaylistServiceGrpc
+	authInterceptor *AuthInterceptor
 }
 
-func NewHandler(songService SongServiceGrpc, playlistService PlaylistServiceGrpc) *Handler {
-	h := &Handler{songService: songService, playlistService: playlistService}
+func NewHandler(songService SongServiceGrpc, playlistService PlaylistServiceGrpc, authInterceptor *AuthInterceptor) *Handler {
+	h := &Handler{songService: songService, playlistService: playlistService, authInterceptor: authInterceptor}
 
 	return h
 }
@@ -33,7 +34,7 @@ func (h *Handler) RunGrpcServer(port string, channel chan error) {
 		return
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(h.authInterceptor.GrpcUnary()))
 	grpcPbV1.RegisterSongServiceServer(grpcServer, h)
 	grpcPbV1.RegisterPlaylistServiceServer(grpcServer, h)
 
@@ -77,7 +78,7 @@ func (h *Handler) RunRestServer(port string, channel chan error) {
 	httpMux := http.NewServeMux()
 
 	// Extra handlers
-	gwmux.HandlePath("POST", "/gateway/v1/song/upload_song", h.UploadSong)
+	gwmux.HandlePath("POST", "/api/gateway/v1/song/upload_song", h.UploadSong)
 	httpMux.Handle("/", gwmux)
 	prefix := os.Getenv("EXPOSED_STORAGE_PREFIX") + "/"
 	fileServer := http.FileServer(http.Dir(string(os.Getenv("INTERNAL_STORAGE_PREFIX"))))

@@ -31,6 +31,8 @@ services:
       REST_PORT: "8011"
       EXPOSED_STORAGE_PREFIX: "/s"
       INTERNAL_STORAGE_PREFIX: "./storage"
+      JWT_SECRET_KEY: "jwt_secret_key"
+      AUTHENTICATION_SERVICE_ADDRESS: "172.18.0.2:8002"
     ports:
       - "8001:8001"
       - "8011:8011"

@@ -89,6 +89,13 @@ func (h *Handler) GetPlaylistDetails(ctx context.Context, req *grpcPbV1.GetPlayl
 }
 
 func (h *Handler) CreatePlaylist(ctx context.Context, req *grpcPbV1.CreatePlaylistRequest) (*grpcPbV1.CreatePlaylistResponse, error) {
+	if req.Playlist == nil {
+		return &grpcPbV1.CreatePlaylistResponse{
+			Error:    common_utils.GetUInt32Pointer(1),
+			ErrorMsg: common_utils.GetStringPointer("playlist must not be empty"),
+		}, nil
+	}
+
 	newPlaylist := playlist.Playlist{
 		Name:      req.Playlist.Name,
 		CreatedBy: req.Playlist.CreatedBy,
@@ -110,6 +117,13 @@ func (h *Handler) CreatePlaylist(ctx context.Context, req *grpcPbV1.CreatePlayli
 }
 
 func (h *Handler) PutPlaylist(ctx context.Context, req *grpcPbV1.PutPlaylistRequest) (*grpcPbV1.PutPlaylistResponse, error) {
+	if req.Playlist == nil {
+		return &grpcPbV1.PutPlaylistResponse{
+			Error:    common_utils.GetUInt32Pointer(1),
+			ErrorMsg: common_utils.GetStringPointer("playlist must not be empty"),
+		}, nil
+	}
+
 	newPlaylist := playlist.Playlist{
 		PlaylistID: req.Playlist.PlaylistId,
 		Name:       req.Playlist.Name,

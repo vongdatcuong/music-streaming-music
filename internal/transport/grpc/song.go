@@ -100,6 +100,20 @@ func (h *Handler) GetSongDetails(ctx context.Context, req *grpcPbV1.GetSongDetai
 }
 
 func (h *Handler) CreateSong(ctx context.Context, req *grpcPbV1.CreateSongRequest) (*grpcPbV1.CreateSongResponse, error) {
+	if req.Song == nil {
+		return &grpcPbV1.CreateSongResponse{
+			Error:    common_utils.GetUInt32Pointer(1),
+			ErrorMsg: common_utils.GetStringPointer("song must not be empty"),
+		}, nil
+	}
+
+	if req.Song.Genre == nil {
+		return &grpcPbV1.CreateSongResponse{
+			Error:    common_utils.GetUInt32Pointer(1),
+			ErrorMsg: common_utils.GetStringPointer("song genre must not be empty"),
+		}, nil
+	}
+
 	newSong := song.Song{
 		Name:         req.Song.Name,
 		Genre:        common.NameValueInt32{Name: "", Value: req.Song.Genre.Value},
@@ -125,6 +139,20 @@ func (h *Handler) CreateSong(ctx context.Context, req *grpcPbV1.CreateSongReques
 }
 
 func (h *Handler) PutSong(ctx context.Context, req *grpcPbV1.PutSongRequest) (*grpcPbV1.PutSongResponse, error) {
+	if req.Song == nil {
+		return &grpcPbV1.PutSongResponse{
+			Error:    common_utils.GetUInt32Pointer(1),
+			ErrorMsg: common_utils.GetStringPointer("song must not be empty"),
+		}, nil
+	}
+
+	if req.Song.Genre == nil {
+		return &grpcPbV1.PutSongResponse{
+			Error:    common_utils.GetUInt32Pointer(1),
+			ErrorMsg: common_utils.GetStringPointer("song genre must not be empty"),
+		}, nil
+	}
+
 	newSong := song.Song{
 		SongID:   req.Song.SongId,
 		Name:     req.Song.Name,

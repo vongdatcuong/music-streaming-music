@@ -19,6 +19,8 @@ Music Streaming System - Music Service
 - Define Gorm Schemas and configurations. Able to return song list of playlists using gorm Preload (Join in sql)
 - Implement UploadPlaylistSongs endpoint, which allows to update song list of a playlist only
 - Use jwt, grpc interceptor, http middleware to implement authentication and authorization
+- Migrate Authentication operation to API Gateway. One issue was to defined error response for all Grpc endpoints
+- Inject jwt token to grpc interceptor context so that grpc methods have access to jwt token
 
 Improvements can make
 

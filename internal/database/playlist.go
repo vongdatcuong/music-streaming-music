@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/common"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/playlist"
 	common_utils "github.com/vongdatcuong/music-streaming-music/internal/modules/utils/common"
@@ -148,8 +147,7 @@ func (db *Database) UpdatePlaylistSongs(ctx context.Context, playlistID uint64, 
 			deletedSongIDs = append(deletedSongIDs, id)
 		}
 	}
-	logrus.Info(newSongIDs)
-	logrus.Info(deletedSongIDs)
+
 	err = db.AddSongsToAPlaylist(ctx, playlistID, newSongIDs)
 
 	if err != nil {

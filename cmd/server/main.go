@@ -2,13 +2,18 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
 	"github.com/vongdatcuong/music-streaming-music/internal/database"
+	"github.com/vongdatcuong/music-streaming-music/internal/modules/connection_pool"
+	"github.com/vongdatcuong/music-streaming-music/internal/modules/jwtAuth"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/playlist"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/song"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/storage"
+	"github.com/vongdatcuong/music-streaming-music/internal/transport/grpc"
 	grpcTransport "github.com/vongdatcuong/music-streaming-music/internal/transport/grpc"
 )
 
@@ -31,11 +36,22 @@ func Run() error {
 		return err
 	}
 
+	// Initiate Connection Pool
+	cpInterceptor := connection_pool.NewConnectionPoolInterceptor()
+	connectionPool, err := connection_pool.NewConnectionPool(cpInterceptor, os.Getenv("AUTHENTICATION_SERVICE_ADDRESS"))
+
+	if err != nil {
+		return err
+	}
+
+	defer connectionPool.CloseAll()
+
 	storageService := storage.NewService()
 	songService := song.NewService(db, storageService)
 	playlistService := playlist.NewService(db)
-
-	grpcHandler := grpcTransport.NewHandler(songService, playlistService)
+	jwtAuthService := jwtAuth.NewService(os.Getenv("JWT_SECRET_KEY"), 6*time.Hour)
+	authInterceptor := grpc.NewAuthInterceptor(jwtAuthService, connectionPool)
+	grpcHandler := grpcTransport.NewHandler(songService, playlistService, authInterceptor)
 
 	if err := grpcHandler.Server(); err != nil {
 		return err
