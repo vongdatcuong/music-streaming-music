@@ -7,7 +7,7 @@ import (
 
 // GENRE
 type GenreSchema struct {
-	GenreID   uint64 `gorm:"column:genre_id;primaryKey"`
+	GenreID   uint32 `gorm:"column:genre_id;primaryKey"`
 	Name      string `gorm:"column:name"`
 	CreatedAt uint64 `gorm:"column:created_at"`
 	UpdatedAt uint64 `gorm:"column:updated_at"`

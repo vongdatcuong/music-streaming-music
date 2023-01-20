@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/connection_pool"
@@ -42,7 +41,7 @@ func (interceptor *AuthInterceptor) GrpcUnary() grpc.UnaryServerInterceptor {
 	}
 }
 
-func (interceptor *AuthInterceptor) HttpMiddleware(next http.Handler) http.Handler {
+/*func (interceptor *AuthInterceptor) HttpMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err, errCode := interceptor.authorize(r.Context(), r.Header["Authorization"], r.URL.Path, HttpEndPointPermissions, HttpEndPointNoAuthentication)
 
@@ -53,7 +52,7 @@ func (interceptor *AuthInterceptor) HttpMiddleware(next http.Handler) http.Handl
 
 		next.ServeHTTP(w, r)
 	})
-}
+}*/
 
 func (interceptor *AuthInterceptor) authorize(ctx context.Context, authHeader []string, path string, permissionsMap map[string][]string, noAuthenMap map[string]bool) (context.Context, error, uint32) {
 	if noAuthenMap[path] {
@@ -111,6 +110,7 @@ func parseAuthorizationHeader(values []string) (string, error) {
 func getRespective403Response(path string) any {
 	errCode, errMsg := common_utils.GetUInt32Pointer(403), common_utils.GetStringPointer("You have no permission to access this resource")
 
+	// Song
 	if path == songServicePath+"/GetSongList" {
 		return &grpcPbV1.GetSongListResponse{
 			Error:    errCode,
@@ -136,7 +136,7 @@ func getRespective403Response(path string) any {
 			Error:    errCode,
 			ErrorMsg: errMsg,
 		}
-	} else if path == playlistServicePath+"/GetPlaylistList" {
+	} else /* Playlist */ if path == playlistServicePath+"/GetPlaylistList" {
 		return &grpcPbV1.GetPlaylistListResponse{
 			Error:    errCode,
 			ErrorMsg: errMsg,
@@ -163,6 +163,16 @@ func getRespective403Response(path string) any {
 		}
 	} else if path == playlistServicePath+"/UpdatePlaylistSongs" {
 		return &grpcPbV1.UpdatePlaylistSongsResponse{
+			Error:    errCode,
+			ErrorMsg: errMsg,
+		}
+	} else if path == playlistServicePath+"/UpdatePlaylistSongs" {
+		return &grpcPbV1.UpdatePlaylistSongsResponse{
+			Error:    errCode,
+			ErrorMsg: errMsg,
+		}
+	} else /* Genre */ if path == genreServicePath+"/GetGenreOptionsList" {
+		return &grpcPbV1.GetGenreOptionsListResponse{
 			Error:    errCode,
 			ErrorMsg: errMsg,
 		}

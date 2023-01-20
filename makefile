@@ -1,7 +1,7 @@
 start:
 	docker-compose up --build
 start-service:
-	docker-compose build service && docker-compose up service
+	docker-compose up --build service
 start-db:
 	docker-compose up db
 down:

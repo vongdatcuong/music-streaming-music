@@ -8,6 +8,7 @@ var songPermissions map[string]string = map[string]string{
 	"WRITE": songPermPrefix + ".write",
 }
 
+// Playlists
 const playlistPermPrefix = "music_streaming.playlist"
 
 var playlistPermissions map[string]string = map[string]string{
@@ -15,17 +16,24 @@ var playlistPermissions map[string]string = map[string]string{
 	"WRITE": playlistPermPrefix + ".write",
 }
 
+// Genre
+const genrePermPrefix = "music_streaming.genre"
+
+var genrePermissions map[string]string = map[string]string{
+	"READ":  genrePermPrefix + ".read",
+	"WRITE": genrePermPrefix + ".write",
+}
+
 // Endpoints
 const songServicePath string = "/music_streaming.music.song.SongService"
-const playlistServicePath string = "/music_streaming.music.playlist.Playlist"
+const playlistServicePath string = "/music_streaming.music.playlist.PlaylistService"
+const genreServicePath string = "/music_streaming.music.genre.GenreService"
 
 var EndPointPermissions map[string][]string = map[string][]string{
 	// Song
-	songServicePath + "/GetSongList":    {songPermissions["READ"]},
-	songServicePath + "/GetSongDetails": {songPermissions["READ"]},
-	songServicePath + "/CreateSong":     {songPermissions["WRITE"]},
-	songServicePath + "/PutSong":        {songPermissions["WRITE"]},
-	songServicePath + "/DeleteSong":     {songPermissions["WRITE"]},
+	songServicePath + "/CreateSong": {songPermissions["WRITE"]},
+	songServicePath + "/PutSong":    {songPermissions["WRITE"]},
+	songServicePath + "/DeleteSong": {songPermissions["WRITE"]},
 	// Playlist
 	playlistServicePath + "/GetPlaylistList":     {playlistPermissions["READ"]},
 	playlistServicePath + "/GetPlaylistDetails":  {playlistPermissions["READ"]},
@@ -33,11 +41,13 @@ var EndPointPermissions map[string][]string = map[string][]string{
 	playlistServicePath + "/PutPlaylist":         {playlistPermissions["WRITE"]},
 	playlistServicePath + "/DeletePlaylist":      {playlistPermissions["WRITE"]},
 	playlistServicePath + "/UpdatePlaylistSongs": {playlistPermissions["WRITE"]},
+
+	// TODO: Maybe can have a separate set of endpoint for user client (non-admin) to call, which won't check for permission possessed by user
 }
 var EndPointNoAuthentication map[string]bool = map[string]bool{}
 
 // Http
-const httpPath = "/api/gateway/v1"
+/*const httpPath = "/api/gateway/v1"
 const httpSongPath = httpPath + "/song"
 const httpPlaylistPath = httpPath + "/playlist"
 
@@ -58,3 +68,4 @@ var HttpEndPointPermissions map[string][]string = map[string][]string{
 	httpPlaylistPath + "/update_playlist_songs": {playlistPermissions["WRITE"]},
 }
 var HttpEndPointNoAuthentication map[string]bool = map[string]bool{}
+*/

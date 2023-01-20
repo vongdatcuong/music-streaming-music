@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/vongdatcuong/music-streaming-music/internal/database"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/connection_pool"
+	"github.com/vongdatcuong/music-streaming-music/internal/modules/genre"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/jwtAuth"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/playlist"
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/song"
@@ -46,12 +47,13 @@ func Run() error {
 
 	defer connectionPool.CloseAll()
 
+	genreService := genre.NewService(db)
 	storageService := storage.NewService()
 	songService := song.NewService(db, storageService)
 	playlistService := playlist.NewService(db)
 	jwtAuthService := jwtAuth.NewService(os.Getenv("JWT_SECRET_KEY"), 6*time.Hour)
 	authInterceptor := grpc.NewAuthInterceptor(jwtAuthService, connectionPool)
-	grpcHandler := grpcTransport.NewHandler(songService, playlistService, authInterceptor)
+	grpcHandler := grpcTransport.NewHandler(songService, playlistService, authInterceptor, genreService)
 
 	if err := grpcHandler.Server(); err != nil {
 		return err

@@ -1,28 +1,28 @@
 package grpc
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/gorilla/mux"
 	grpcPbV1 "github.com/vongdatcuong/music-streaming-protos/go/v1"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type Handler struct {
 	grpcPbV1.UnimplementedSongServiceServer
 	grpcPbV1.UnimplementedPlaylistServiceServer
+	grpcPbV1.UnimplementedGenreServiceServer
 	songService     SongServiceGrpc
 	playlistService PlaylistServiceGrpc
 	authInterceptor *AuthInterceptor
+	genreService    GenreServiceGrpc
 }
 
-func NewHandler(songService SongServiceGrpc, playlistService PlaylistServiceGrpc, authInterceptor *AuthInterceptor) *Handler {
-	h := &Handler{songService: songService, playlistService: playlistService, authInterceptor: authInterceptor}
+func NewHandler(songService SongServiceGrpc, playlistService PlaylistServiceGrpc, authInterceptor *AuthInterceptor, genreService GenreServiceGrpc) *Handler {
+	h := &Handler{songService: songService, playlistService: playlistService, authInterceptor: authInterceptor, genreService: genreService}
 
 	return h
 }
@@ -37,6 +37,7 @@ func (h *Handler) RunGrpcServer(port string, channel chan error) {
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(h.authInterceptor.GrpcUnary()))
 	grpcPbV1.RegisterSongServiceServer(grpcServer, h)
 	grpcPbV1.RegisterPlaylistServiceServer(grpcServer, h)
+	grpcPbV1.RegisterGenreServiceServer(grpcServer, h)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		channel <- fmt.Errorf("could not server Grpc server on port %s: %w", port, err)
@@ -44,7 +45,7 @@ func (h *Handler) RunGrpcServer(port string, channel chan error) {
 }
 
 func (h *Handler) RunRestServer(port string, channel chan error) {
-	gwmux := runtime.NewServeMux(
+	/*gwmux := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 			MarshalOptions: protojson.MarshalOptions{
 				UseProtoNames: true, // Rest Server to return the same fields as protobuf
@@ -80,6 +81,25 @@ func (h *Handler) RunRestServer(port string, channel chan error) {
 	// Extra handlers
 	gwmux.HandlePath("POST", "/api/gateway/v1/song/upload_song", h.UploadSong)
 	httpMux.Handle("/", gwmux)
+	prefix := os.Getenv("EXPOSED_STORAGE_PREFIX") + "/"
+	fileServer := http.FileServer(http.Dir(string(os.Getenv("INTERNAL_STORAGE_PREFIX"))))
+	httpMux.Handle(prefix, http.StripPrefix(prefix, fileServer))
+
+	if err := http.Serve(restLis, httpMux); err != nil {
+		channel <- fmt.Errorf("could not serve Rest server on port %s: %w", port, err)
+	}*/
+
+	restLis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	if err != nil {
+		channel <- fmt.Errorf("could not listen on port %s: %w", port, err)
+		return
+	}
+	httpMux := http.NewServeMux()
+
+	muxRouter := mux.NewRouter()
+	muxRouter.HandleFunc("/api/gateway/v1/song/upload_song", h.UploadSong).Methods("POST")
+	httpMux.Handle("/", muxRouter)
+
 	prefix := os.Getenv("EXPOSED_STORAGE_PREFIX") + "/"
 	fileServer := http.FileServer(http.Dir(string(os.Getenv("INTERNAL_STORAGE_PREFIX"))))
 	httpMux.Handle(prefix, http.StripPrefix(prefix, fileServer))

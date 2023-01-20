@@ -16,6 +16,7 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -34,7 +35,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0
 	github.com/lib/pq v1.10.7
-	github.com/vongdatcuong/music-streaming-protos v0.0.4
+	github.com/vongdatcuong/music-streaming-protos v0.0.8
 	golang.org/x/sys v0.3.0 // indirect
 	google.golang.org/grpc v1.51.0
 	gorm.io/driver/mysql v1.4.3
