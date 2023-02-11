@@ -22,6 +22,7 @@ Music Streaming System - Music Service
 - Migrate Authentication operation to API Gateway. One issue was to defined error response for all Grpc endpoints
 - Inject jwt token to grpc interceptor context so that grpc methods have access to jwt token
 - Implement Get genre options list endpoint: define protobuf -> Add genre grpc method -> Add genre service -> Add genre database method
+- Integrate Cloudinary to storage audio file
 
 Improvements can make
 
