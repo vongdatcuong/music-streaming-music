@@ -87,7 +87,7 @@ func (db *Database) GetSongList(ctx context.Context, pagination common.Paginatio
 
 	sql := `SELECT s.*, g.name
 					FROM song s 
-					INNER JOIN genre g ON s.genre = g.genre_id ` + queryStr + ` LIMIT ?, ?`
+					INNER JOIN genre g ON s.genre = g.genre_id ORDER BY s.updated_at desc, s.song_id ` + queryStr + ` LIMIT ?, ?`
 	rows, err := db.Client.QueryContext(ctx, sql, values...)
 	defer rows.Close()
 
@@ -234,7 +234,7 @@ func (db *Database) DoesSongExist(ctx context.Context, id uint64) (bool, error) 
 
 // TODO: Maybe we will use this in the future when we have a feat to let users update only song's resources
 func (db *Database) UpdateSongResource(ctx context.Context, id uint64, resourceID string, resourceLink string) error {
-	updateSongResource := UpdateSongResource{ResourceID: resourceID, ResourceLink: resourceLink}
+	updateSongResource := UpdateSongResource{ResourceID: resourceID, ResourceLink: resourceLink, UpdatedAt: time_utils.GetCurrentUnixTime()}
 
 	err := validator_utils.ValidateStruct(updateSongResource)
 

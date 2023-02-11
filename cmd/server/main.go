@@ -47,8 +47,13 @@ func Run() error {
 
 	defer connectionPool.CloseAll()
 
+	storageService, err := storage.NewService()
+
+	if err != nil {
+		return fmt.Errorf("could not initiate connection to storage service: %w", err)
+	}
+
 	genreService := genre.NewService(db)
-	storageService := storage.NewService()
 	songService := song.NewService(db, storageService)
 	playlistService := playlist.NewService(db)
 	jwtAuthService := jwtAuth.NewService(os.Getenv("JWT_SECRET_KEY"), 6*time.Hour)

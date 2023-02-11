@@ -100,6 +100,7 @@ func (h *Handler) RunRestServer(port string, channel chan error) {
 	muxRouter.HandleFunc("/api/gateway/v1/song/upload_song", h.UploadSong).Methods("POST")
 	httpMux.Handle("/", muxRouter)
 
+	// TODO: Stop supporting serving static files
 	prefix := os.Getenv("EXPOSED_STORAGE_PREFIX") + "/"
 	fileServer := http.FileServer(http.Dir(string(os.Getenv("INTERNAL_STORAGE_PREFIX"))))
 	httpMux.Handle(prefix, http.StripPrefix(prefix, fileServer))

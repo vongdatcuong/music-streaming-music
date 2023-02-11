@@ -1,10 +1,8 @@
 package song
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"mime/multipart"
 
 	"github.com/vongdatcuong/music-streaming-music/internal/modules/common"
@@ -32,7 +30,7 @@ type SongStore interface {
 }
 
 type StorageService interface {
-	CreateFile(content []byte, fileName string, folderPath string) (string, string, error)
+	UploadFile(context.Context, *multipart.FileHeader) (string, string, error)
 }
 
 type SongService struct {
@@ -137,21 +135,11 @@ func (s *SongService) DeleteSong(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (s *SongService) UploadSong(ctx context.Context, header *multipart.FileHeader, file multipart.File) (string, string, error) {
-	buf := bytes.NewBuffer(nil)
-
-	if _, err := io.Copy(buf, file); err != nil {
-		return "", "", fmt.Errorf("could not read file content: %v", err)
-	}
-
-	fileName, fileLink, err := s.storageService.CreateFile(buf.Bytes(), header.Filename, constants.STORAGE_SONG_PATH)
+func (s *SongService) UploadSong(ctx context.Context, header *multipart.FileHeader) (string, string, error) {
+	fileName, fileLink, err := s.storageService.UploadFile(ctx, header)
 
 	if err != nil {
-		return "", "", fmt.Errorf("could not create file: %v", err)
-	}
-
-	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("could not upload audio file: %v", err)
 	}
 
 	// Use these fileName and fileLink to fill in Create/Put Song requests

@@ -59,6 +59,7 @@ type SongRowPut struct {
 type UpdateSongResource struct {
 	ResourceID   string `validate:"required"`
 	ResourceLink string `validate:"required"`
+	UpdatedAt    uint64 `gorm:"column:updated_at"`
 }
 
 type SongSchema struct {

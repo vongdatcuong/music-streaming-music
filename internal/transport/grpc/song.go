@@ -17,7 +17,7 @@ type SongServiceGrpc interface {
 	CreateSong(context.Context, song.Song) (song.Song, error)
 	PutSong(context.Context, song.Song) (song.Song, error)
 	DeleteSong(context.Context, uint64) error
-	UploadSong(context.Context, *multipart.FileHeader, multipart.File) (string, string, error)
+	UploadSong(context.Context, *multipart.FileHeader) (string, string, error)
 }
 
 func (h *Handler) GetSongList(ctx context.Context, req *grpcPbV1.GetSongListRequest) (*grpcPbV1.GetSongListResponse, error) {

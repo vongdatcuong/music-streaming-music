@@ -1,17 +1,48 @@
 package storage
 
 import (
+	"context"
 	"fmt"
+	"mime/multipart"
 	"os"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/google/uuid"
 )
 
 type StorageService struct {
+	cld *cloudinary.Cloudinary
 }
 
-func NewService() *StorageService {
-	return &StorageService{}
+func NewService() (*StorageService, error) {
+	cld, err := cloudinary.NewFromParams(os.Getenv("CLOUDINARY_CLOUD_NAME"), os.Getenv("CLOUDINARY_API_KEY"), os.Getenv("CLOUDINARY_API_SECRET"))
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &StorageService{cld: cld}, nil
+}
+
+func (storage *StorageService) UploadFile(ctx context.Context, header *multipart.FileHeader) (string, string, error) {
+	file, err := header.Open()
+	defer file.Close()
+
+	if err != nil {
+		return "", "", err
+	}
+
+	res, err := storage.cld.Upload.Upload(ctx, file, uploader.UploadParams{
+		UniqueFilename: api.Bool(false),
+		Overwrite:      api.Bool(true)})
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return res.AssetID, res.SecureURL, nil
 }
 
 // folderPath does not include '/' as the last character
